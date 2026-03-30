@@ -1,0 +1,83 @@
+\documentclass[tikz,border=10pt]{standalone}
+%\usepackage[fontset=lxgw]{ctex}
+\usepackage{ctex}
+\usepackage{xcolor}
+
+% 定义颜色
+\definecolor{arxivred}{HTML}{B31B1B} % 康奈尔红/arXiv 经典色
+\definecolor{softgray}{HTML}{F5F5F5}
+\definecolor{darkgray}{HTML}{333333}
+
+\usetikzlibrary{arrows.meta, positioning, shadows}
+
+\begin{document}
+	
+	\begin{tikzpicture}[
+		node distance=2cm,
+		every node/.style={font=\kaishu},
+		timeline node/.style={
+			fill=white,
+			draw=arxivred,
+			thick,
+			rounded corners=3pt,
+			inner sep=6pt,
+			text width=3.5cm,
+			align=center,
+			drop shadow={opacity=0.2}
+		},
+		year node/.style={
+			fill=arxivred,
+			text=white,
+			font=\sffamily\bfseries,
+			inner sep=3pt,
+			rounded corners=2pt
+		}
+		]
+		
+		% 绘制主轴线
+		\draw[arxivred!30, line width=4pt, -{Stealth[length=10pt]}] (-1,0) -- (18,0);
+		\draw[arxivred, line width=1.5pt] (-1,0) -- (17.5,0);
+		
+		% --- 1991 ---
+		\node[year node] (y2023) at (0,0) {2023};
+		\node[timeline node, above=0.5cm of y2023] (n1) {
+			\textbf{起步：确定研究方向} \\
+			\small 基于多智能体强化学习的无人艇编队控制研究
+		};
+		\draw[arxivred, thick] (y2023) -- (n1.south);
+		
+		% --- 2025 ---
+		\node[year node] (y2025) at (4,0) {2025};
+		\node[timeline node, below=0.5cm of y2025] (n2) {
+			\textbf{开题：确定研究方向} \\
+			\small 更名为 \textbf{arXiv.org}，项目移至康奈尔大学图书馆管理
+		};
+		\draw[arxivred, thick] (y2025) -- (n2.north);
+		
+		% --- 2026 ---
+		\node[year node] (y2026) at (8.5,0) {2026};
+		\node[timeline node, above=0.5cm of y2026] (n3) {
+			\textbf{中期检查：云端迁移} \\
+			\small 实验环境搭建、小论文撰写、开展实验
+		};
+		\draw[arxivred, thick] (y2026) -- (n3.south);
+		
+		% --- 2025 (Early) ---
+		\node[year node] (y2027a) at (13,0) {2027.02};
+		\node[timeline node, below=0.5cm of y2027a] (n4) {
+			\textbf{实验：仿真场景验证} \\
+			\small 全面仿真验证，ROS2仿真验证
+		};
+		\draw[arxivred, thick] (y2027a) -- (n4.north);
+		
+		% --- 2025 (Late) ---
+		\node[year node] (y2025b) at (16.5,0) {2027};
+		\node[timeline node, above=0.5cm of y2025b] (n5) {
+			\textbf{毕业论文：答辩} \\
+			\small 完善毕业论文，准备毕业答辩
+		};
+		\draw[arxivred, thick] (y2025b) -- (n5.south);
+		
+	\end{tikzpicture}
+	
+\end{document} 
