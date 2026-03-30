@@ -1,0 +1,50 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+
+\begin{document}
+
+    \begin{tikzpicture}[
+        >=Latex,
+        node distance=10mm and 10mm,
+        block/.style={draw, rounded corners, align=center, minimum width=26mm, minimum height=9mm},
+        sum/.style={draw, circle, inner sep=0pt, minimum size=5.5mm},
+        line/.style={->, thick}
+    ]
+
+        \node[block] (path) {参考路径\\$x_d,y_d,\gamma_p,\kappa$};
+        \node[block, right=of path] (error) {误差计算\\$e_s,e_y,\delta_\rho$};
+        \node[block, right=of error, minimum width=30mm] (los) {自适应LOS制导\\$\Delta(e_y,\kappa,u,\delta_\rho)$};
+        \node[block, below=of los] (speedref) {参考航速生成\\$u_d$};
+
+        \node[block, right=18mm of los] (pidpsi) {航向PID\\$\psi_d \rightarrow \tau_r^*$};
+        \node[block, below=of pidpsi] (pidu) {航速PID\\$u_d \rightarrow \tau_u^*$};
+
+        \node[block, right=of pidu, minimum width=28mm] (sat) {限幅与抗积分\\饱和处理};
+        \node[block, right=of sat] (alloc) {控制分配};
+        \node[block, right=of alloc, minimum width=24mm] (plant) {USV模型};
+
+        % connections
+        \draw[line] (path) -- (error);
+        \draw[line] (error) -- (los);
+        \draw[line] (los) -- node[above] {$\psi_d$} (pidpsi);
+        \draw[line] (speedref) -- (pidu);
+
+        \draw[line] (pidpsi) -- ++(8mm,0) |- (sat);
+        \draw[line] (pidu) -- (sat);
+        \draw[line] (sat) -- (alloc);
+        \draw[line] (alloc) -- node[above] {$T_L,T_R$} (plant);
+
+        % feedback
+        \draw[line] (plant.west) |- ++(-12mm,-18mm) -| node[pos=0.25, below] {$x,y,\psi,u,v,r$} (error.south);
+        \draw[line] (plant.west) |- ++(-12mm,-10mm) -| (speedref.south);
+
+        % note
+        \node[draw, dashed, fit=(error)(los), inner sep=3mm, label=above:外环] {};
+        \node[draw, dashed, fit=(pidpsi)(pidu)(sat)(alloc), inner sep=3mm, label=above:内环] {};
+
+    \end{tikzpicture}
+
+
+\end{document}
