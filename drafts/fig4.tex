@@ -1,0 +1,91 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta,calc}
+
+\begin{document}
+\begin{tikzpicture}[
+    >=Stealth,
+    font=\small,
+    line join=round,
+    line cap=round
+]
+
+% ======================================
+% 左图：直线路径测试
+% ======================================
+\begin{scope}[shift={(0,0)}]
+    \draw[->, thick] (0,0) -- (4.8,0) node[below right] {$X$};
+    \draw[->, thick] (0,0) -- (0,3.8) node[left] {$Y$};
+    \node[below left] at (0,0) {$O$};
+
+    % 参考路径
+    \draw[thick] (0.8,1.1) -- (4.2,2.6);
+    \node[above right] at (4.0,2.5) {Line path};
+
+    % 起点
+    \fill (1.1,0.6) circle (1.1pt);
+    \node[below] at (1.1,0.6) {Start};
+
+    % 终点
+    \fill (3.9,2.45) circle (1.1pt);
+    \node[above] at (3.9,2.45) {Goal};
+
+    % USV initial pose
+    \begin{scope}[shift={(1.1,0.6)}, rotate=18]
+        \def\L{0.55}
+        \def\W{0.22}
+        \draw[thick]
+            (-0.42*\L,-0.5*\W)
+            -- (0.18*\L,-0.5*\W)
+            -- (0.52*\L,0)
+            -- (0.18*\L,0.5*\W)
+            -- (-0.42*\L,0.5*\W)
+            -- cycle;
+    \end{scope}
+
+    \node at (2.3,-0.65) {(a) Straight-line tracking scenario};
+\end{scope}
+
+% ======================================
+% 右图：圆形路径测试
+% ======================================
+\begin{scope}[shift={(6.3,0)}]
+    \draw[->, thick] (0,0) -- (4.8,0) node[below right] {$X$};
+    \draw[->, thick] (0,0) -- (0,3.8) node[left] {$Y$};
+    \node[below left] at (0,0) {$O$};
+
+    % 圆形路径
+    \draw[thick] (2.3,1.8) circle (1.15);
+    \node[above right] at (3.15,2.75) {Circular path};
+
+    % 起点
+    \fill (3.45,1.8) circle (1.1pt);
+    \node[right] at (3.45,1.8) {Start};
+
+    % USV initial pose
+    \begin{scope}[shift={(3.45,1.8)}, rotate=90]
+        \def\L{0.55}
+        \def\W{0.22}
+        \draw[thick]
+            (-0.42*\L,-0.5*\W)
+            -- (0.18*\L,-0.5*\W)
+            -- (0.52*\L,0)
+            -- (0.18*\L,0.5*\W)
+            -- (-0.42*\L,0.5*\W)
+            -- cycle;
+    \end{scope}
+
+    % 圆心
+    \fill (2.3,1.8) circle (1pt);
+    \node[below left] at (2.3,1.8) {$C$};
+
+    % 半径
+    \draw[dashed] (2.3,1.8) -- (3.45,1.8);
+    \node[below] at (2.9,1.8) {$R$};
+
+    \node at (2.3,-0.65) {(b) Circular tracking scenario};
+\end{scope}
+
+\end{tikzpicture}
+\end{document}
