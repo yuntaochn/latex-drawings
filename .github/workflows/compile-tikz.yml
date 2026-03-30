@@ -1,29 +1,40 @@
-name: Build LaTeX Figures
-
-# 触发条件：push 到 main 分支就自动编译
+name: Compile TikZ Figures
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:  # 允许手动点击运行
+    paths:
+      - 'src/**' # 只有当 src 目录下的文件变动时才触发，节省 GitHub Action 分钟数
+  workflow_dispatch: # 允许手动点击运行
+
+# 关键：授予 Action 推送代码的权限
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 拉取代码
+      - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取完整历史，防止推送失败
 
-      - name: 安装 LaTeX 环境
+      - name: Compile TikZ to PDF
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: ""  # 我们用 Makefile 批量编译
-          compiler: pdflatex
+          root_file: src/*.tex # 编译 src 目录下所有独立 tex 文件
+          args: "-pdf -interaction=nonstopmode -shell-escape"
+          # 编译成功后，PDF 会生成在 src 目录下
 
-      - name: 编译所有图片
-        run: make
+      - name: Organize Outputs
+        run: |
+          mkdir -p output
+          # 移动生成好的 PDF 到 output 目录
+          mv src/*.pdf output/ 2>/dev/null || true
+          # 清理 LaTeX 产生的中间临时文件
+          rm -f src/*.aux src/*.log src/*.out src/*.fls src/*.fdb_latexmk
 
-      - name: 上传生成的图片（供下载）
-        uses: actions/upload-artifact@v4
+      - name: Commit and Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          name: tikz-figures  # 下载包名
-          path: images/       # 只上传生成的图片目录
+          commit_message: "Auto-compile TikZ: Updated PDF outputs"
+          file_pattern: 'output/*.pdf' # 只推送 output 目录下的 PDF
