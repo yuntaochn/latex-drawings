@@ -1,0 +1,95 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{ctex}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    node distance=8mm and 10mm,
+    block/.style={
+        draw,
+        rectangle,
+        rounded corners=1.5pt,
+        align=center,
+        minimum height=9mm,
+        minimum width=30mm,
+        font=\small
+    },
+    smallblock/.style={
+        draw,
+        rectangle,
+        rounded corners=1.5pt,
+        align=center,
+        minimum height=8mm,
+        minimum width=24mm,
+        font=\small
+    },
+    line/.style={->, thick},
+    dashedline/.style={->, thick, dashed}
+]
+
+% Top layer
+\node[block] (path) {参考路径 / 航点\\期望速度 $u_d$};
+
+% Guidance
+\node[block, below=of path] (los) {LOS 导引模块\\输出 $\psi_d$};
+
+% Error
+\node[block, below=of los] (error) {误差计算\\$e_u=u_d-u$\\$e_\psi=\mathrm{wrap}(\psi_d-\psi)$\\$e_y$: 横向误差};
+
+% PID controllers
+\node[smallblock, below left=of error] (pidu) {纵向 PID\\输出 $\tau_u$};
+\node[smallblock, below right=of error] (pidpsi) {航向 PID\\输出 $\tau_r$};
+
+% Allocation
+\node[block, below=14mm of error] (alloc) {控制分配 / 执行器约束\\$\tau=[\tau_u,0,\tau_r]^T$\\或 $\tau \rightarrow [T_L,T_R]^T$};
+
+% actuator
+\node[block, below=of alloc] (act) {推进器 / 执行机构模型};
+
+% dynamics
+\node[block, below=of act] (dyn) {USV 动力学模型\\$M\dot{\nu}+C(\nu)\nu+D(\nu)\nu=\tau+d_{ext}$\\输出 $\dot{\nu}$};
+
+% kinematics
+\node[block, below=of dyn] (kin) {USV 运动学模型\\$\dot{\eta}=R(\psi)\nu$\\输出 $\dot{\eta}$};
+
+% integrator
+\node[block, below=of kin] (int) {数值积分模块\\RK4 / Euler};
+
+% state
+\node[block, below=of int] (state) {状态更新\\$\eta=[x,y,\psi]^T,\ \nu=[u,v,r]^T$};
+
+% Disturbance
+\node[smallblock, right=18mm of dyn] (dist) {环境扰动\\风 / 浪 / 流};
+
+% Logger
+\node[smallblock, left=18mm of int] (log) {数据记录\\轨迹 / 误差 / 控制量};
+
+% Connections
+\draw[line] (path) -- (los);
+\draw[line] (los) -- (error);
+
+\draw[line] (error) -| (pidu);
+\draw[line] (error) -| (pidpsi);
+
+\draw[line] (pidu) |- (alloc);
+\draw[line] (pidpsi) |- (alloc);
+
+\draw[line] (alloc) -- (act);
+\draw[line] (act) -- (dyn);
+\draw[line] (dyn) -- (kin);
+\draw[line] (kin) -- (int);
+\draw[line] (int) -- (state);
+
+\draw[line] (dist) -- (dyn);
+\draw[line] (int) -- (log);
+
+% Feedback
+\draw[dashedline] (state.east) .. controls +(28mm,0) and +(28mm,0) .. (error.east);
+\draw[dashedline] (state.east) .. controls +(35mm,0) and +(35mm,0) .. (los.east);
+
+\end{tikzpicture}
+
+\end{document}

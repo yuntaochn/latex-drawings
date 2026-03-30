@@ -1,0 +1,29 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usetikzlibrary{arrows.meta, calc, angles, quotes}
+
+\begin{document}
+	\begin{tikzpicture}[>=stealth, scale=1.5]
+		% 大地坐标系参考
+		\draw[->, gray!60] (-0.5,0) -- (4,0) node[right] {$y_n$ (East)};
+		\draw[->, gray!60] (0,-0.5) -- (0,3) node[above] {$x_n$ (North)};
+		\node[below left, gray!60] at (0,0) {$O_n$};
+		
+		% USV 位置
+		\coordinate (P) at (2, 1.8);
+		\draw[dashed, gray] (P) -- (0, 1.8) node[left] {$x$};
+		\draw[dashed, gray] (P) -- (2, 0) node[below] {$y$};
+		
+		% 绘制 USV 形状 (x向前，y向右)
+		\begin{scope}[shift={(P)}, rotate=-60] % 顺时针转60度
+			\draw[thick, fill=blue!10] (-0.6,-0.3) -- (0.4,-0.3) -- (0.8,0) -- (0.4,0.3) -- (-0.6,0.3) -- cycle;
+			\draw[->, ultra thick, red] (0,0) -- (1.5, 0) coordinate (Xb) node[right] {$x_b$};
+			\draw[->, ultra thick, red] (0,0) -- (0, -1) node[below] {$y_b$};
+		\end{scope}
+		
+		% 航向角标注
+		\draw[dashed] (P) -- ++(0, 1.5) coordinate (N_ref);
+		\pic [draw, ->, "$\psi$", angle eccentricity=1.5, angle radius=0.8cm, thick] {angle = N_ref--P--Xb};
+		
+		\node[draw, fill=white, font=\small] at (3, 2.5) {平面运动投影};
+	\end{tikzpicture}
+\end{document}

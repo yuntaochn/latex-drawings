@@ -1,0 +1,66 @@
+\documentclass[tikz,border=6pt]{standalone}
+
+\usepackage{ctex} % for Chinese labels; remove if you prefer English-only
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc}
+
+% ---------- USV component (robust) ----------
+% Usage:
+%   \USV[scale=1.0,name=boat]{x}{y}{psi}
+% Anchors available:
+%   (boat-center), (boat-bow), (boat-stern)
+
+\makeatletter
+\pgfkeys{
+  /USV/.is family, /USV,
+  scale/.initial=1.0,
+  name/.initial=usv
+}
+
+\newcommand{\USV}[4][]{%
+  % parse options
+  \pgfkeys{/USV, scale=1.0, name=usv, #1}%
+  \pgfkeysgetvalue{/USV/scale}{\USV@scale}%
+  \pgfkeysgetvalue{/USV/name}{\USV@name}%
+
+  \begin{scope}[shift={(#2,#3)}, rotate=#4, scale=\USV@scale, line cap=round, line join=round]
+    % styles (local)
+    \tikzset{
+      usvHull/.style={draw, line width=0.6pt, fill=gray!10},
+      usvDetail/.style={draw, line width=0.45pt},
+      usvMark/.style={fill=black}
+    }
+
+    % hull: rounded rectangle
+    \path[usvHull, rounded corners=2.2pt] (-1.2,-0.35) rectangle (1.6,0.35);
+
+    % bow wedge
+    \path[usvHull] (1.6,-0.35) -- (1.95,0) -- (1.6,0.35) -- cycle;
+
+    % anchors
+    \coordinate (\USV@name-center) at (0,0);
+    \coordinate (\USV@name-bow) at (1.95,0);
+    \coordinate (\USV@name-stern) at (-1.2,0);
+
+    % markers
+    \fill[usvMark] (\USV@name-center) circle (0.9pt);
+    \fill[usvMark] (\USV@name-bow) circle (0.9pt);
+
+    % subtle deck line
+    \draw[usvDetail] (-0.9,0) -- (1.2,0);
+  \end{scope}%
+}
+\makeatother
+
+\begin{document}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[>=Latex]
+  \USV[name=boatA,scale=1.0]{0}{0}{25}
+\end{tikzpicture}
+\caption{USV schematic (top view).}
+\end{figure}
+
+
+\end{document}

@@ -1,0 +1,61 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+
+\tikzset{
+	base/.style={draw=black, rounded corners=1.8mm, thick, align=center, text=black},
+	io/.style={base, fill=white, minimum width=23mm, minimum height=8.5mm, inner sep=3.2pt},
+	block/.style={base, fill=black!4, minimum width=25mm, minimum height=8.5mm, inner sep=3.2pt},
+	dyn/.style={base, fill=black!10, minimum width=33mm, minimum height=11.5mm, inner sep=4pt},
+	kin/.style={base, fill=black!16, minimum width=30mm, minimum height=10.5mm, inner sep=4pt},
+	groupbox/.style={draw=black!70, dashed, rounded corners=2.2mm, thick, inner sep=5pt},
+	arrow/.style={-{Latex[length=2.7mm,width=1.9mm]}, thick, draw=black},
+	fb/.style={-{Latex[length=2.5mm,width=1.8mm]}, thick, draw=black!85},
+	lab/.style={font=\bfseries\scriptsize, text=black, fill=white, inner sep=1.2pt}
+}
+
+\begin{document}
+	\begin{tikzpicture}[node distance=4.5mm and 6mm, font=\scriptsize]
+		
+		% main chain
+		\node[io] (cmd) {控制输入\\$u_c$};
+		\node[block, below=of cmd] (map) {执行器映射\\$u_c \rightarrow \tau$};
+		\node[dyn, below=of map] (dyn) {动力学模型\\$M\dot{\nu}+C(\nu)\nu+D(\nu)\nu=\tau+\tau_{env}$};
+		\node[io, below=of dyn] (vel) {速度状态\\$\nu=[u,v,r]^T$};
+		\node[kin, below=of vel] (kin) {运动学模型\\$\dot{\eta}=J(\psi)\nu$};
+		\node[io, below=of kin] (pose) {位姿状态\\$\eta=[x,y,\psi]^T$};
+		
+		\draw[arrow] (cmd) -- (map);
+		\draw[arrow] (map) -- node[right=1mm] {$\tau$} (dyn);
+		\draw[arrow] (dyn) -- node[right=1mm] {积分} (vel);
+		\draw[arrow] (vel) -- node[right=1mm] {坐标变换} (kin);
+		\draw[arrow] (kin) -- node[right=1mm] {积分} (pose);
+		
+		% side blocks
+%		\node[block, right=10mm of dyn, minimum width=18mm] (dist) {外界扰动\\$d$};
+		\node[block, left=10mm of dyn, minimum width=18mm] (dist) {外界扰动\\$\tau_{env}$};
+		\node[block, right=10mm of kin, minimum width=28mm] (ctrl) {导引/控制器\\误差计算与控制律};
+		
+%		\draw[arrow] (dist.west) -- (dyn.east);
+		\draw[arrow] (dist.east) -- (dyn.west);
+		
+		% smooth feedback arrows
+		\draw[fb] (pose.east) .. controls +(14mm,0mm) and +(0mm,-8mm) .. node[pos=0.55, right=1.5mm, align=left] {位置/航向\\反馈} (ctrl.south);
+		\draw[fb] (vel.east) .. controls +(10mm,0mm) and +(-11mm,0mm) .. node[pos=0.48, above=1mm] {速度反馈} (ctrl.west);
+		\draw[fb] (ctrl.north) .. controls +(0mm,11mm) and +(17mm,0mm) .. node[pos=0.58, right=1mm, align=left] {期望指令} (cmd.east);
+		
+		% group boxes
+		\begin{pgfonlayer}{background}
+			\node[groupbox, fit=(dyn)(vel), label={[lab]north:动力学层}] {};
+			\node[groupbox, fit=(kin)(pose), label={[lab]north:运动学层}] {};
+		\end{pgfonlayer}
+		
+%		% summary
+%		\node[align=left, text width=7.9cm, anchor=north west, font=\scriptsize]
+%		at ([yshift=-3mm]pose.south west)
+%		{\textbf{作用链：}控制输入 $\rightarrow$ 广义力/力矩 $\rightarrow$ 速度变化（动力学） $\rightarrow$ 位姿变化（运动学）。\\
+%			\textbf{关系概括：}动力学回答“力如何改变速度”，运动学回答“速度如何改变位置与姿态”。};
+		
+	\end{tikzpicture}
+\end{document}

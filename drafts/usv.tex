@@ -1,0 +1,29 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{tikz}
+
+\begin{document}
+	\begin{tikzpicture}
+		\begin{scope}[scale=2.2]
+			% 船体填充
+			\fill[gray!35]
+			(0,1.15)
+			.. controls (0.28,0.95) and (0.42,0.45) .. (0.40,-0.10)
+			.. controls (0.38,-0.48) and (0.30,-0.78) .. (0.24,-0.90)
+			-- (-0.24,-0.90)
+			.. controls (-0.30,-0.78) and (-0.38,-0.48) .. (-0.40,-0.10)
+			.. controls (-0.42,0.45) and (-0.28,0.95) .. cycle;
+			
+			% 船体边界
+			\draw[thick]
+			(0,1.15)
+			.. controls (0.28,0.95) and (0.42,0.45) .. (0.40,-0.10)
+			.. controls (0.38,-0.48) and (0.30,-0.78) .. (0.24,-0.90)
+			-- (-0.24,-0.90)
+			.. controls (-0.30,-0.78) and (-0.38,-0.48) .. (-0.40,-0.10)
+			.. controls (-0.42,0.45) and (-0.28,0.95) .. cycle;
+			
+%			% 中轴线
+%			\draw[thin] (0,0.92) -- (0,-0.74);
+		\end{scope}
+	\end{tikzpicture}
+\end{document}

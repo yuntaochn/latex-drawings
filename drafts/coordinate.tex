@@ -1,0 +1,40 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+
+\begin{document}
+	\begin{tikzpicture}[
+		>=Stealth,
+		axis/.style={thick,->},
+		mainline/.style={thick},
+		aux/.style={thin,dashed},
+		vec/.style={thick,->},
+		err/.style={blue!70!black,thick,->},
+		pt/.style={circle,fill=black,inner sep=1.2pt},
+		every node/.style={font=\small}
+		]
+		
+		% 每一步把代码放这里
+		% Step 1 绘制坐标系
+		\coordinate (Og) at (0,0);
+		\draw[axis] (Og) -- (0,5.8) node[left] {$x_g$};
+		\draw[axis] (Og) -- (8.8,0) node[below] {$y_g$};
+		\node[below left] at (Og) {$O_g$};
+		% Step 2 绘制参考路径（贝塞尔曲线）
+		\draw[mainline]
+		(0.8,1.6) .. controls (2.0,4.3) and (5.0,5.1) .. (7.3,4.7);
+		\node at (2.9,4.7) {$\zeta_p(\varpi)$};
+		
+		% Step 3 选取参考点
+		% 从同一条曲线上取点
+		\path
+		(0.8,1.6) .. controls (2.0,4.3) and (5.0,5.1) .. (7.3,4.7)
+		coordinate[pos=0.30] (P)
+		coordinate[pos=0.29] (Pprev)
+		coordinate[pos=0.31] (Pnext);
+		\node[pt,label=above left:$p$] at (P) {};
+
+		
+	\end{tikzpicture}
+\end{document}

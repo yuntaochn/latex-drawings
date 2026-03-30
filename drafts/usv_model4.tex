@@ -1,0 +1,74 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+
+\tikzset{
+	base/.style={draw=black, rounded corners=1.8mm, thick, align=center, text=black},
+	io/.style={base, fill=white, minimum width=22mm, minimum height=8.5mm, inner sep=3pt},
+	block/.style={base, fill=black!4, minimum width=24mm, minimum height=8.5mm, inner sep=3pt},
+	dyn/.style={base, fill=black!10, minimum width=30mm, minimum height=11mm, inner sep=4pt},
+	kin/.style={base, fill=black!16, minimum width=28mm, minimum height=10mm, inner sep=4pt},
+	groupbox/.style={draw=black!70, dashed, rounded corners=2.2mm, thick, inner sep=5pt},
+	arrow/.style={-{Latex[length=2.7mm,width=1.9mm]}, thick, draw=black},
+	fb/.style={-{Latex[length=2.5mm,width=1.8mm]}, thick, draw=black!85, rounded corners=3pt},
+	lab/.style={font=\bfseries\scriptsize, text=black, fill=white, inner sep=1.2pt}
+}
+
+\begin{document}
+	\begin{tikzpicture}[node distance=4.2mm and 5.5mm, font=\scriptsize]
+		
+		% Main chain
+		\node[io]    (ref)  {参考指令\\$\eta_d,\ \nu_d$};
+		\node[block, below=of ref] (err)  {误差计算\\$e_\eta,\ e_\nu$};
+		\node[block, below=of err] (ctrl) {控制器\\控制律设计};
+		\node[io, below=of ctrl]   (tauc) {$\tau_c$\\期望广义输入};
+		\node[block, below=of tauc] (alloc) {控制分配\\$\tau_c \rightarrow T$};
+		\node[io, below=of alloc]  (thr)  {$T=[T_L,T_R]^T$\\推进器推力};
+		\node[block, below=of thr] (act)  {执行器动态/约束\\饱和、延迟、限幅};
+		\node[io, below=of act]    (tau)  {$\tau$\\实际广义输入};
+		\node[dyn, below=of tau]   (dyn)  {动力学模型\\$M\dot{\nu}+C(\nu)\nu+D(\nu)\nu=\tau+d$};
+		\node[io, below=of dyn]    (vel)  {速度状态\\$\nu=[u,v,r]^T$};
+		\node[kin, below=of vel]   (kin)  {运动学模型\\$\dot{\eta}=J(\psi)\nu$};
+		\node[io, below=of kin]    (pose) {位姿状态\\$\eta=[x,y,\psi]^T$};
+		
+		\draw[arrow] (ref) -- (err);
+		\draw[arrow] (err) -- (ctrl);
+		\draw[arrow] (ctrl) -- (tauc);
+		\draw[arrow] (tauc) -- (alloc);
+		\draw[arrow] (alloc) -- (thr);
+		\draw[arrow] (thr) -- (act);
+		\draw[arrow] (act) -- (tau);
+		\draw[arrow] (tau) -- (dyn);
+		\draw[arrow] (dyn) -- node[right=1mm] {积分} (vel);
+		\draw[arrow] (vel) -- node[right=1mm] {坐标变换} (kin);
+		\draw[arrow] (kin) -- node[right=1mm] {积分} (pose);
+		
+		% Disturbance
+		\node[block, right=10mm of dyn, minimum width=17mm] (dist) {外界扰动\\$d$};
+		\draw[arrow] (dist.west) -- (dyn.east);
+		
+		% Feedback routing
+		\coordinate (p1) at ($(pose.east)+(8mm,0)$);
+		\coordinate (p2) at ($(p1)+(0,18mm)$);
+		\coordinate (p3) at ($(ctrl.east)+(16mm,0)$);
+		
+		\draw[fb] (pose.east) -- (p1) -- (p2) -- (p3) -- (ctrl.east);
+		\node[font=\scriptsize, align=left] at ($(p2)+(5mm,-6mm)$) {状态反馈\\$\eta,\nu$};
+		
+		% layer boxes
+		\begin{pgfonlayer}{background}
+			\node[groupbox, fit=(tauc)(alloc)(thr)(act)(tau), label={[lab]north:控制分配与执行器层}] {};
+			\node[groupbox, fit=(dyn)(vel), label={[lab]north:动力学层}] {};
+			\node[groupbox, fit=(kin)(pose), label={[lab]north:运动学层}] {};
+		\end{pgfonlayer}
+		
+		% Summary text
+		\node[align=left, text width=8.2cm, anchor=north west, font=\scriptsize]
+		at ([yshift=-3mm]pose.south west)
+		{\textbf{作用链：}参考指令 $\rightarrow$ 控制器输出期望广义输入 $\tau_c$ $\rightarrow$ 控制分配得到推进器推力 $T$
+			$\rightarrow$ 经执行器动态与约束形成实际艇体输入 $\tau$ $\rightarrow$ 动力学决定速度变化 $\rightarrow$ 运动学决定位姿变化。\\
+			\textbf{说明：}理想执行器条件下通常有 $\tau=\tau_c$；当存在饱和、延迟或限幅时，一般有 $\tau \neq \tau_c$。};
+		
+	\end{tikzpicture}
+\end{document}
