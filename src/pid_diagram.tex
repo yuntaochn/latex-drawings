@@ -1,0 +1,136 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{ctex}
+\usepackage{amsmath,amssymb}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,backgrounds}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    font=\small,
+    >=Latex,
+    node distance=8mm and 10mm,
+    block/.style={
+        draw,
+        rectangle,
+        rounded corners=1.5pt,
+        align=center,
+        minimum height=10mm,
+        text width=38mm,
+        inner sep=4pt
+    },
+    eqblock/.style={
+        draw,
+        rectangle,
+        rounded corners=1.5pt,
+        align=center,
+        minimum height=12mm,
+        text width=46mm,
+        inner sep=5pt
+    },
+    smallblock/.style={
+        draw,
+        rectangle,
+        rounded corners=1.5pt,
+        align=center,
+        minimum height=9mm,
+        text width=28mm,
+        inner sep=3pt
+    },
+    line/.style={->, thick},
+    groupbox/.style={
+        draw,
+        rounded corners=2pt,
+        inner sep=6pt
+    },
+    grouplabel/.style={
+        anchor=south west,
+        fill=white,
+        inner xsep=3pt,
+        inner ysep=1pt,
+        font=\small
+    }
+]
+
+% Top inputs
+\node[block] (cmd) {%
+导引指令\\
+$u_d,\ \psi_d$
+};
+
+\node[block, below left=of cmd] (eu) {%
+速度误差\\
+$e_u = u_d-u$
+};
+
+\node[block, below right=of cmd] (epsi) {%
+航向误差\\
+$e_\psi = \operatorname{wrap}(\psi_d-\psi)$
+};
+
+% PID equations
+\node[eqblock, below=of eu] (pidu) {%
+纵向 PID 控制律\\[1mm]
+$\tau_u = K_{pu}e_u + K_{iu}\!\int e_u\,dt + K_{du}\dot e_u$
+};
+
+\node[eqblock, below=of epsi] (pidpsi) {%
+航向 PID 控制律\\[1mm]
+$\tau_r = K_{p\psi}e_\psi + K_{i\psi}\!\int e_\psi\,dt + K_{d\psi}\dot e_\psi$
+};
+
+% Output combination
+\node[eqblock, below=16mm of $(pidu)!0.5!(pidpsi)$] (tau) {%
+控制输入合成\\[1mm]
+$\tau=\begin{bmatrix}\tau_u\\[1mm]0\\[1mm]\tau_r\end{bmatrix}$
+};
+
+% Optional allocation
+\node[block, below=of tau] (alloc) {%
+若为双推进器 USV：\\
+$\tau \mapsto [T_L,\ T_R]^\top$
+};
+
+% States
+\node[smallblock, left=18mm of eu] (state1) {%
+状态反馈\\
+$u$
+};
+
+\node[smallblock, right=18mm of epsi] (state2) {%
+状态反馈\\
+$\psi$
+};
+
+% connections
+\draw[line] (cmd) -- (eu);
+\draw[line] (cmd) -- (epsi);
+
+\draw[line] (eu) -- (pidu);
+\draw[line] (epsi) -- (pidpsi);
+
+\draw[line] (pidu) |- (tau);
+\draw[line] (pidpsi) |- (tau);
+
+\draw[line] (tau) -- (alloc);
+
+\draw[line] (state1) -- (eu);
+\draw[line] (state2) -- (epsi);
+
+% groups
+\begin{scope}[on background layer]
+    \node[groupbox, fit=(cmd)] (g1) {};
+    \node[grouplabel] at ([xshift=2mm,yshift=1mm]g1.north west) {指令输入};
+
+    \node[groupbox, fit=(eu)(epsi)(state1)(state2)] (g2) {};
+    \node[grouplabel] at ([xshift=2mm,yshift=1mm]g2.north west) {误差构造};
+
+    \node[groupbox, fit=(pidu)(pidpsi)] (g3) {};
+    \node[grouplabel] at ([xshift=2mm,yshift=1mm]g3.north west) {PID 控制律};
+
+    \node[groupbox, fit=(tau)(alloc)] (g4) {};
+    \node[grouplabel] at ([xshift=2mm,yshift=1mm]g4.north west) {控制输出};
+\end{scope}
+
+\end{tikzpicture}
+
+\end{document}
