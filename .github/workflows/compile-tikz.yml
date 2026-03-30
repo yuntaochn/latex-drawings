@@ -1,28 +1,29 @@
-name: Compile TikZ to PDF/PNG
-on: [push] # 每次推送代码时触发
+name: Build LaTeX Figures
+
+# 触发条件：push 到 main 分支就自动编译
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 允许手动点击运行
 
 jobs:
-  build_tikz:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: 拉取代码
+        uses: actions/checkout@v4
 
-      - name: Install TeX Live
-        uses: xu-cheng/latex-action@v2
+      - name: 安装 LaTeX 环境
+        uses: xu-cheng/latex-action@v3
         with:
-          root_file: src/*.tex # 编译 src 下所有 tex 文件
-          args: -pdf -shell-escape # 允许调用外部工具转换格式
+          root_file: ""  # 我们用 Makefile 批量编译
+          compiler: pdflatex
 
-      - name: Move outputs
-        run: |
-          mkdir -p output
-          mv src/*.pdf output/
-          
-      - name: Commit and Push
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          git add output/*.pdf
-          git commit -m "Auto-compile TikZ figures" || exit 0
-          git push
+      - name: 编译所有图片
+        run: make
+
+      - name: 上传生成的图片（供下载）
+        uses: actions/upload-artifact@v4
+        with:
+          name: tikz-figures  # 下载包名
+          path: images/       # 只上传生成的图片目录
