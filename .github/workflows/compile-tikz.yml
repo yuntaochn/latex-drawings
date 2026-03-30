@@ -1,40 +1,75 @@
-name: Compile TikZ Figures
+name: Compile TikZ PDFs
+
 on:
   push:
     paths:
-      - 'src/**' # 只有当 src 目录下的文件变动时才触发，节省 GitHub Action 分钟数
-  workflow_dispatch: # 允许手动点击运行
+      - "src/**"
+      - ".github/workflows/compile-tikz.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - ".github/workflows/compile-tikz.yml"
+  workflow_dispatch:
 
-# 关键：授予 Action 推送代码的权限
 permissions:
   contents: write
 
 jobs:
-  build_and_deploy:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 获取完整历史，防止推送失败
+          fetch-depth: 0
 
-      - name: Compile TikZ to PDF
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: src/*.tex # 编译 src 目录下所有独立 tex 文件
-          args: "-pdf -interaction=nonstopmode -shell-escape"
-          # 编译成功后，PDF 会生成在 src 目录下
-
-      - name: Organize Outputs
+      - name: Install LaTeX dependencies
         run: |
-          mkdir -p output
-          # 移动生成好的 PDF 到 output 目录
-          mv src/*.pdf output/ 2>/dev/null || true
-          # 清理 LaTeX 产生的中间临时文件
-          rm -f src/*.aux src/*.log src/*.out src/*.fls src/*.fdb_latexmk
+          sudo apt-get update
+          sudo apt-get install -y \
+            latexmk \
+            texlive-xetex \
+            texlive-lang-chinese \
+            texlive-latex-extra
 
-      - name: Commit and Push Changes
+      - name: Compile TeX files to PDF
+        env:
+          CTEX_FONTSET: fandol
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          mkdir -p output
+          tex_files=(src/*.tex)
+
+          if [ ${#tex_files[@]} -eq 0 ]; then
+            echo "No TeX files found in src/"
+            exit 1
+          fi
+
+          for tex_file in "${tex_files[@]}"; do
+            latexmk \
+              -xelatex \
+              -interaction=nonstopmode \
+              -halt-on-error \
+              -file-line-error \
+              -outdir=output \
+              "${tex_file}"
+          done
+
+          ls -lh output/*.pdf
+
+      - name: Upload PDF artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-pdfs
+          path: output/*.pdf
+          if-no-files-found: error
+
+      - name: Commit generated PDFs
+        if: github.event_name == 'push'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Auto-compile TikZ: Updated PDF outputs"
-          file_pattern: 'output/*.pdf' # 只推送 output 目录下的 PDF
+          commit_message: "ci: update compiled PDFs"
+          file_pattern: "output/*.pdf"
