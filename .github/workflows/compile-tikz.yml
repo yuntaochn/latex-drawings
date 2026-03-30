@@ -1,0 +1,28 @@
+name: Compile TikZ to PDF/PNG
+on: [push] # 每次推送代码时触发
+
+jobs:
+  build_tikz:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install TeX Live
+        uses: xu-cheng/latex-action@v2
+        with:
+          root_file: src/*.tex # 编译 src 下所有 tex 文件
+          args: -pdf -shell-escape # 允许调用外部工具转换格式
+
+      - name: Move outputs
+        run: |
+          mkdir -p output
+          mv src/*.pdf output/
+          
+      - name: Commit and Push
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add output/*.pdf
+          git commit -m "Auto-compile TikZ figures" || exit 0
+          git push

@@ -1,0 +1,184 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{ctex}
+\usepackage{amsmath,amssymb}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,backgrounds}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    font=\small,
+    >=Latex,
+    node distance=7mm and 9mm,
+    block/.style={
+        draw,
+        rectangle,
+        rounded corners=1.5pt,
+        align=center,
+        minimum height=9mm,
+        text width=38mm,
+        inner sep=4pt
+    },
+    smallblock/.style={
+        draw,
+        rectangle,
+        rounded corners=1.5pt,
+        align=center,
+        minimum height=8mm,
+        text width=29mm,
+        inner sep=3pt
+    },
+    sideblock/.style={
+        draw,
+        rectangle,
+        rounded corners=1.5pt,
+        align=center,
+        minimum height=8mm,
+        text width=25mm,
+        inner sep=3pt
+    },
+    line/.style={->, thick},
+    fbline/.style={->, thick, densely dashed},
+    groupbox/.style={
+        draw,
+        rounded corners=2pt,
+        inner sep=6pt
+    },
+    grouplabel/.style={
+        anchor=south west,
+        fill=white,
+        inner xsep=3pt,
+        inner ysep=1pt,
+        font=\small
+    }
+]
+
+% =========================
+% Main chain
+% =========================
+\node[block] (path) {%
+参考路径 / 航点\\
+期望巡航速度 $u_d$
+};
+
+\node[block, below=of path] (los) {%
+LOS 导引模块\\
+输入：当前位置 $(x,y)$、路径几何信息\\
+输出：期望航向角 $\psi_d$
+};
+
+\node[block, below=of los] (err) {%
+误差计算模块\\
+$e_u = u_d-u$\\
+$e_\psi = \operatorname{wrap}(\psi_d-\psi)$\\
+$e_y$：横向跟踪误差
+};
+
+\node[smallblock, below left=10mm and 7mm of err] (pidu) {%
+纵向 PID\\
+输入：$e_u$\\
+输出：$\tau_u$
+};
+
+\node[smallblock, below right=10mm and 7mm of err] (pidpsi) {%
+航向 PID\\
+输入：$e_\psi$\\
+输出：$\tau_r$
+};
+
+\node[block, below=20mm of err] (alloc) {%
+控制分配 / 执行器约束\\
+$\tau=[\tau_u,\,0,\,\tau_r]^\top$\\
+或 $\tau \mapsto [T_L,T_R]^\top$\\
+含限幅、饱和、死区等约束
+};
+
+\node[block, below=of alloc] (act) {%
+推进器 / 执行机构模型\\
+左右推进器推力响应
+};
+
+\node[block, below=of act] (dyn) {%
+USV 动力学模型\\
+$M\dot{\nu}+C(\nu)\nu+D(\nu)\nu=\tau+d_{\mathrm{ext}}$\\
+$\nu=[u,v,r]^\top$，输出 $\dot{\nu}$
+};
+
+\node[block, below=of dyn] (kin) {%
+USV 运动学模型\\
+$\dot{\eta}=R(\psi)\nu$\\
+$\eta=[x,y,\psi]^\top$，输出 $\dot{\eta}$
+};
+
+\node[block, below=of kin] (int) {%
+数值积分模块\\
+RK4 / Euler / ODE Solver
+};
+
+\node[block, below=of int] (state) {%
+状态更新\\
+$\eta(k+1),\ \nu(k+1)$
+};
+
+% =========================
+% Side blocks
+% =========================
+\node[sideblock, right=15mm of dyn] (dist) {%
+环境扰动\\
+风 / 浪 / 流\\
+$d_{\mathrm{ext}}$
+};
+
+\node[sideblock, left=15mm of int] (log) {%
+数据记录\\
+轨迹 / 误差\\
+控制输入
+};
+
+% =========================
+% Connections
+% =========================
+\draw[line] (path) -- (los);
+\draw[line] (los) -- (err);
+
+\draw[line] (err) -| (pidu);
+\draw[line] (err) -| (pidpsi);
+
+\draw[line] (pidu) |- (alloc);
+\draw[line] (pidpsi) |- (alloc);
+
+\draw[line] (alloc) -- (act);
+\draw[line] (act) -- (dyn);
+\draw[line] (dyn) -- (kin);
+\draw[line] (kin) -- (int);
+\draw[line] (int) -- (state);
+
+\draw[line] (dist) -- (dyn);
+\draw[line] (int) -- (log);
+
+\draw[fbline] (state.east) .. controls +(28mm,0) and +(28mm,0) .. (err.east);
+\draw[fbline] (state.east) .. controls +(40mm,0) and +(40mm,0) .. (los.east);
+
+% =========================
+% Group boxes
+% =========================
+\begin{scope}[on background layer]
+    \node[groupbox, fit=(path)] (g1) {};
+    \node[grouplabel] at ([xshift=-15mm,yshift=0mm]g1.west) {任务层};
+
+    \node[groupbox, fit=(los)] (g2) {};
+    % \node[grouplabel] at ([xshift=2mm,yshift=1mm]g2.north west) {导引层};
+    \node[grouplabel] at ([xshift=-15mm,yshift=0mm]g2.west) {导引层};
+
+    \node[groupbox, fit=(err)(pidu)(pidpsi)] (g3) {};
+    \node[grouplabel] at ([xshift=2mm,yshift=1mm]g3.north west) {控制层};
+
+    \node[groupbox, fit=(alloc)(act)(dyn)(kin)(dist)] (g4) {};
+    \node[grouplabel] at ([xshift=2mm,yshift=1mm]g4.north west) {执行与对象层};
+
+    \node[groupbox, fit=(int)(state)(log)] (g5) {};
+    \node[grouplabel] at ([xshift=2mm,yshift=1mm]g5.north west) {仿真与评估层};
+\end{scope}
+
+\end{tikzpicture}
+
+\end{document}
