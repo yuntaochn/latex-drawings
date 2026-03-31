@@ -1,0 +1,88 @@
+\documentclass[tikz,border=5pt]{standalone}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta,calc,angles,quotes}
+
+\begin{document}
+\begin{tikzpicture}[
+    >=Stealth,
+    line join=round,
+    line cap=round,
+    font=\small
+]
+
+% =========================
+% 参数
+% =========================
+\def\px{6.0}      % USV中心 x
+\def\py{3.0}      % USV中心 y
+\def\psi{30}      % 航向角（度）
+\def\L{2.2}       % 船长尺度
+\def\W{0.9}       % 船宽尺度
+\def\axislen{1.6} % 艇体坐标轴长度
+
+% =========================
+% 全局坐标系 O-XY
+% =========================
+\draw[->, thick] (0,0) -- (8.2,0) node[below right] {$X$};
+\draw[->, thick] (0,0) -- (0,5.2) node[left] {$Y$};
+\node[below left] at (0,0) {$O$};
+
+% =========================
+% 位置点 G
+% =========================
+\coordinate (G) at (\px,\py);
+\fill (G) circle (1.2pt);
+\node[above left=1pt] at (G) {$G(x,y)$};
+
+% 从原点到G的辅助投影线
+\draw[dashed] (\px,0) -- (G);
+\draw[dashed] (0,\py) -- (G);
+\node[below] at (\px/2,0) {$x$};
+\node[left] at (0,\py/2) {$y$};
+
+% =========================
+% 船体（以G为中心，旋转psi）
+% 俯视简化外形
+% =========================
+\begin{scope}[shift={(G)}, rotate=\psi]
+    % 船体轮廓（尖头）
+    \draw[thick]
+        (-0.9*\L, -0.5*\W)
+        -- (0.45*\L, -0.5*\W)
+        -- (0.95*\L, 0)
+        -- (0.45*\L, 0.5*\W)
+        -- (-0.9*\L, 0.5*\W)
+        -- cycle;
+
+    % 中轴虚线
+    \draw[dashed] (-0.85*\L,0) -- (0.85*\L,0);
+
+    % 艇体坐标系
+    \draw[->, thick] (0,0) -- (\axislen,0) node[above] {$x_b$};
+    \draw[->, thick] (0,0) -- (0,-\axislen) node[right] {$y_b$};
+
+    % 质心/参考点
+    \fill (0,0) circle (1pt);
+\end{scope}
+
+% =========================
+% 航向角 psi
+% =========================
+\coordinate (Xdir) at ($(G)+(1.6,0)$);
+\coordinate (Bdir) at ($(G)+({1.6*cos(\psi)},{1.6*sin(\psi)})$);
+
+\draw pic[
+    draw,
+    ->,
+    thick,
+    angle radius=12mm,
+    angle eccentricity=1.2,
+    "$\psi$"
+] {angle = Xdir--G--Bdir};
+
+% 航向方向辅助线
+\draw[dashed] (G) -- (Bdir);
+
+\end{tikzpicture}
+\end{document}
