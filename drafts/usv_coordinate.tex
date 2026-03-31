@@ -28,15 +28,15 @@
 	% -------------------------------------------------------------------------
 	% 2. 绘制大地坐标系 {I} (Earth-fixed Frame - NED)
 	% -------------------------------------------------------------------------
-%	\draw[->, thick, gray!80] (-0.5, 0) -- (3, 0) node[right, black] {$x_g$ (North)};
-%	\draw[->, thick, gray!80] (0, -0.5) -- (0, 2.5) node[above, black] {$y_g$ (East)};
-%	\node[below left, gray!80] at (0,0) {$O_g$};
+	% \draw[->, thick, gray!80] (-0.5, 0) -- (3, 0) node[right, black] {$x_g$ (North)};
+	% \draw[->, thick, gray!80] (0, -0.5) -- (0, 2.5) node[above, black] {$y_g$ (East)};
+	% \node[below left, gray!80] at (0,0) {$O_g$};
 	% -------------------------------------------------
 	% 1. Global frame
 	% -------------------------------------------------
 	\coordinate (Og) at (0,0);
-	\draw[->, thick] (-0.5, 0) -- (3, 0) node[right, black] {$x_I$ (North)};
-	\draw[->, thick] (0, -0.5) -- (0, 2.5) node[above, black] {$y_I$ (East)};
+	\draw[->, thick] (-0.5, 0) -- (3, 0) node[right, black] {$Y_I$ (East)};
+	\draw[->, thick] (0, -0.5) -- (0, 2.5) node[above, black] {$X_I$ (North)};
 	\node[below left] at (0,0) {$O_I$};
 	% -------------------------------------------------------------------------
 	% 3. 定义 USV 体轴坐标系 {B} 的原点 P(x, y)

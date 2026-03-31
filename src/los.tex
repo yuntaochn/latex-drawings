@@ -1,0 +1,154 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{ctex}
+\usetikzlibrary{calc,arrows.meta,angles,quotes}
+
+\begin{document}
+\begin{tikzpicture}[
+    >=Latex,
+    line cap=round,
+    line join=round,
+    font=\small,
+    axis/.style={->, thin},
+    pathline/.style={thick},
+    auxline/.style={thin, dashed},
+    helpline/.style={thin, dash pattern=on 2pt off 2pt},
+    losline/.style={->, thick},
+    point/.style={circle, fill=black, inner sep=1.2pt}
+]
+
+% =========================================================
+% NED风格二维示意：
+% 页面中 X 轴向上，Y 轴向右
+% gamma_p 从 +X 轴（竖直向上）顺时针量到路径切线方向
+% =========================================================
+
+% -------------------------
+% 全局坐标轴：Y 向右，X 向上
+% -------------------------
+\draw[axis] (-0.4,0) -- (9.2,0) node[below] {$Y$(East)};
+\draw[axis] (0,-0.4) -- (0,6.2) node[left] {$X$(North)};
+
+% -------------------------
+% 参数
+% -------------------------
+\def\gammap{28}   % 路径切线角：从 +X 轴顺时针到路径方向
+\def\dperp{1.45}  % 横向偏差大小
+\def\LookAhead{2.40} % 预瞄距离
+
+% -------------------------
+% 关键点
+% 页面坐标采用 (右, 上) = (Y, X)
+% 路径前向单位向量：t = (sin gamma, cos gamma)
+% 右法向单位向量：n_R = (cos gamma, -sin gamma)
+% -------------------------
+\coordinate (T) at (3.9,2.2);
+
+% 路径两端点
+\coordinate (A) at ($(T)+({-4.8*sin(\gammap)},{-4.8*cos(\gammap)})$);
+\coordinate (B) at ($(T)+({ 5.0*sin(\gammap)},{ 5.0*cos(\gammap)})$);
+
+% 船位 P：放在路径右侧（便于说明 e_y<0 的情形）
+\coordinate (P) at ($(T)+({\dperp*cos(\gammap)},{-\dperp*sin(\gammap)})$);
+
+% 预瞄点 H：沿路径前向取 Delta
+\coordinate (H) at ($(T)+({\LookAhead*sin(\gammap)},{\LookAhead*cos(\gammap)})$);
+
+% -------------------------
+% 路径、LOS、投影辅助线
+% -------------------------
+\draw[pathline] (A) -- (B) node[pos=0.93, above] {参考路径};
+\draw[auxline] (P) -- (T);
+\draw[losline] (P) -- (H) node[pos=0.60, below right] {LOS视线};
+
+% -------------------------
+% 直角标记：PT ⟂ 路径
+% -------------------------
+\coordinate (RT1) at ($(T)+({0.22*sin(\gammap)},{0.22*cos(\gammap)})$);
+\coordinate (RT2) at ($(T)+({0.22*cos(\gammap)},{-0.22*sin(\gammap)})$);
+\coordinate (RT3) at ($(RT1)+({0.22*cos(\gammap)},{-0.22*sin(\gammap)})$);
+\draw[thin] (RT1) -- (RT3) -- (RT2);
+
+% -------------------------
+% 点标记
+% -------------------------
+\node[point,label=above left:{$T$}] at (T) {};
+\node[point,label=below right:{$P(x,y)$}] at (P) {};
+\node[point,label=above right:{$H$}] at (H) {};
+
+% -------------------------
+% e_y 标注
+% 当前图中 P 在路径右侧，因此若采用“左正右负”约定，则 e_y<0
+% 这里只先标 e_y，符号在正文说明
+% -------------------------
+\draw[<->, thin]
+    ($(T)+({0.18*cos(\gammap)},{-0.18*sin(\gammap)})$) --
+    ($(P)+({0.18*cos(\gammap)},{-0.18*sin(\gammap)})$)
+    node[midway, right] {$e_y$};
+
+% -------------------------
+% Delta 标注
+% -------------------------
+\draw[<->, thin]
+    ($(T)+({-0.18*cos(\gammap)},{0.18*sin(\gammap)})$) --
+    ($(H)+({-0.18*cos(\gammap)},{0.18*sin(\gammap)})$)
+    node[midway, above] {$\Delta$};
+
+% -------------------------
+% 路径方向箭头
+% -------------------------
+\draw[->, thick]
+    ($(T)+({0.15*sin(\gammap)},{0.15*cos(\gammap)})$) --
+    ($(T)+({1.35*sin(\gammap)},{1.35*cos(\gammap)})$);
+
+% =========================================================
+% 角度辅助线
+% =========================================================
+
+% 1) 在 T 点画 +X 轴方向辅助线（竖直向上），用于标 gamma_p
+\coordinate (TXref) at ($(T)+(0,1.25)$);
+\draw[helpline] (T) -- (TXref);
+
+% 2) 在 P 点画 +X 轴方向辅助线（竖直向上），用于标 psi_d
+\coordinate (PXref) at ($(P)+(0,1.15)$);
+\draw[helpline] (P) -- (PXref);
+
+% 3) 在 P 点画“平行于路径切线”的辅助线，用于标 alpha
+\coordinate (PTanRef) at ($(P)+({1.25*sin(\gammap)},{1.25*cos(\gammap)})$);
+\draw[helpline] (P) -- (PTanRef);
+
+% -------------------------
+% gamma_p：从 +X 轴到路径切线方向
+% -------------------------
+\coordinate (TPathRef) at ($(T)+({1.15*sin(\gammap)},{1.15*cos(\gammap)})$);
+\draw pic[
+    draw,
+    ->,
+    angle radius=0.78cm,
+    angle eccentricity=1.18,
+    "$\gamma_p$"
+] {angle = TXref--T--TPathRef};
+
+% -------------------------
+% psi_d：从 +X 轴到 LOS 方向
+% -------------------------
+\draw pic[
+    draw,
+    ->,
+    angle radius=0.70cm,
+    angle eccentricity=1.18,
+    "$\psi_d$"
+] {angle = PXref--P--H};
+
+% -------------------------
+% alpha：从路径切线方向到 LOS 方向
+% -------------------------
+\draw pic[
+    draw,
+    ->,
+    angle radius=1.00cm,
+    angle eccentricity=1.16,
+    "$\alpha$"
+] {angle = PTanRef--P--H};
+
+\end{tikzpicture}
+\end{document}
