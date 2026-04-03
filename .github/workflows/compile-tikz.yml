@@ -1,4 +1,4 @@
-name: Compile TikZ PDFs
+name: Compile TikZ Assets
 
 on:
   push:
@@ -29,11 +29,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             latexmk \
+            pdf2svg \
             texlive-xetex \
             texlive-lang-chinese \
             texlive-latex-extra
 
-      - name: Compile TeX files to PDF
+      - name: Compile TeX files to PDF and SVG
         env:
           CTEX_FONTSET: fandol
         run: |
@@ -56,20 +57,33 @@ jobs:
               -file-line-error \
               -outdir=output \
               "${tex_file}"
+
+            pdf_file="output/$(basename "${tex_file%.tex}").pdf"
+            svg_file="output/$(basename "${tex_file%.tex}").svg"
+
+            if [ ! -f "${pdf_file}" ]; then
+              echo "Expected PDF not found: ${pdf_file}"
+              exit 1
+            fi
+
+            pdf2svg "${pdf_file}" "${svg_file}"
           done
 
           ls -lh output/*.pdf
+          ls -lh output/*.svg
 
-      - name: Upload PDF artifacts
+      - name: Upload PDF and SVG artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: compiled-pdfs
-          path: output/*.pdf
+          name: compiled-assets
+          path: |
+            output/*.pdf
+            output/*.svg
           if-no-files-found: error
 
-      - name: Commit generated PDFs
+      - name: Commit generated PDF and SVG files
         if: github.event_name == 'push'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "ci: update compiled PDFs"
-          file_pattern: "output/*.pdf"
+          commit_message: "ci: update compiled assets"
+          file_pattern: "output/*.pdf output/*.svg"

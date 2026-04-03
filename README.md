@@ -9,3 +9,24 @@ USV示意图
 图5 不同方法的横向误差变化曲线
 图6 不同方法的控制输入变化曲线
 
+本地生成 PDF 和 SVG
+
+执行：
+
+```bash
+./scripts/build_assets.sh
+```
+
+或：
+
+```bash
+make
+```
+
+依赖：
+
+```bash
+latexmk
+pdf2svg
+xelatex
+```
