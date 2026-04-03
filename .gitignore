@@ -328,8 +328,10 @@ TSWLatexianTemp*
 *.pdf 
 # 重点：忽略源码目录下的 PDF（本地预览生成的）
 src/*.pdf
+src/*.svg 
 
 # 允许追踪 output 目录下的 PDF（由 Action 统一生成的）
 !output/*.pdf
+!output/*.svg
 
 .DS_Store
