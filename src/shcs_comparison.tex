@@ -1,0 +1,88 @@
+\begin{tikzpicture}[
+  >=Stealth,
+  font=\footnotesize,
+  ttl/.style={font=\small\bfseries},
+  note/.style={draw, rounded corners=2pt, fill=gray!6, draw=gray!45, align=left},
+  law/.style={draw, rounded corners=3pt, thick, minimum width=2.7cm, minimum height=1.75cm, align=center},
+]
+
+% -------------------------------------------------------------------------
+% (a) response examples
+% -------------------------------------------------------------------------
+\begin{scope}[xshift=0cm,yshift=0cm]
+  \node[ttl] at (3.9,4.1) {(a)\;航点切换后的参考响应差异};
+
+  \begin{scope}[xshift=0cm,yshift=2.0cm]
+    \draw[->,gray!65] (-0.1,0) -- (1.95,0) node[right] {$t$};
+    \draw[->,gray!65] (0,-0.1) -- (0,1.25) node[above] {$\psi$};
+    \draw[very thick, blue!70!black] (0,0.15)--(0.72,0.15)--(0.72,1.02)--(1.8,1.02);
+    \draw[densely dashed, gray!60] (0.72,0)--(0.72,1.02);
+    \node at (0.72,-0.22) {$t_s$};
+    \node[text=blue!70!black] at (1.18,1.18) {原始$\psid$阶跃};
+  \end{scope}
+
+  \begin{scope}[xshift=2.6cm,yshift=2.0cm]
+    \draw[->,gray!65] (-0.1,0) -- (1.95,0) node[right] {$t$};
+    \draw[->,gray!65] (0,-0.1) -- (0,1.25);
+    \draw[thick, blue!45!black, densely dashed] (0,0.15)--(0.72,0.15)--(0.72,1.02)--(1.8,1.02);
+    \draw[very thick, orange!85!black] (0,0.15) .. controls (0.68,0.15) and (1.08,0.58) .. (1.8,0.96);
+    \node[text=orange!85!black] at (1.16,1.18) {一阶滤波};
+    \node at (0.98,-0.32) {固定$T_f$，平缓但滞后};
+  \end{scope}
+
+  \begin{scope}[xshift=5.2cm,yshift=2.0cm]
+    \draw[->,gray!65] (-0.1,0) -- (1.95,0) node[right] {$t$};
+    \draw[->,gray!65] (0,-0.1) -- (0,1.25);
+    \draw[thick, blue!45!black, densely dashed] (0,0.15)--(0.72,0.15)--(0.72,1.02)--(1.8,1.02);
+    \draw[very thick, purple!75!black] (0,0.15)--(0.72,0.15)--(1.52,0.92)--(1.8,1.02);
+    \node[text=purple!75!black] at (1.16,1.18) {固定速率限幅};
+    \node at (0.98,-0.32) {固定$r_{\mathrm{fixed}}$};
+  \end{scope}
+
+  \begin{scope}[xshift=7.8cm,yshift=2.0cm]
+    \draw[->,gray!65] (-0.1,0) -- (1.95,0) node[right] {$t$};
+    \draw[->,gray!65] (0,-0.1) -- (0,1.25);
+    \draw[thick, blue!45!black, densely dashed] (0,0.15)--(0.72,0.15)--(0.72,1.02)--(1.8,1.02);
+    \draw[very thick, red!75!black]
+      (0,0.15)--(0.72,0.15)--(0.95,0.72)
+      .. controls (1.08,0.92) and (1.28,1.00) .. (1.8,1.02);
+    \node[text=red!75!black] at (1.16,1.18) {SHCS-H};
+    \node at (0.98,-0.32) {低$|r|$时更快，高$|r|$时更保守};
+  \end{scope}
+\end{scope}
+
+% -------------------------------------------------------------------------
+% (b) policy summary
+% -------------------------------------------------------------------------
+\begin{scope}[xshift=0.2cm,yshift=-0.45cm]
+  \node[ttl] at (4.7,1.55) {(b)\;三类参考处理策略的控制规律};
+
+  \node[law, fill=orange!10, draw=orange!70!black] (fo) at (1.6,0.4) {
+    \textbf{FO}\\[2pt]
+    $\psiref^{+}=\psiref+\dfrac{\Delta t}{T_f}(\psid-\psiref)$\\[2pt]
+    固定时间常数\\
+    无显式状态感知速率约束
+  };
+
+  \node[law, fill=purple!10, draw=purple!70!black] (fr) at (4.75,0.4) {
+    \textbf{FR}\\[2pt]
+    $|\dot{\psiref}|\le r_{\mathrm{fixed}}$\\[2pt]
+    固定速率限幅\\
+    实现简单但自适应性弱
+  };
+
+  \node[law, fill=red!10, draw=red!70!black] (shcs) at (7.9,0.4) {
+    \textbf{SHCS-H}\\[2pt]
+    $|\dot{\psiref}|\le r_{\mathrm{lim}}(t)$\\[2pt]
+    由当前偏航状态决定\\
+    低$|r|$快，高$|r|$保守
+  };
+
+  \node[note, text width=9.4cm] at (4.75,-1.85) {
+    图(a)给出典型转角起始阶段的响应差异，图(b)概括三类方法的控制规律。\\
+    其中，SHCS-H的核心不在于“更平滑”，而在于其参考变化率上限由当前偏航可达性在线决定，
+    因而能够在转角初期更积极响应，在高偏航速率阶段自动收缓。
+  };
+\end{scope}
+
+\end{tikzpicture}

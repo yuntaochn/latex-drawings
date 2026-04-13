@@ -1,0 +1,89 @@
+\begin{tikzpicture}[
+  >=Stealth,
+  font=\footnotesize,
+  block/.style={
+    draw,
+    rounded corners=2pt,
+    thick,
+    minimum width=2.2cm,
+    minimum height=0.9cm,
+    align=center,
+    fill=blue!6,
+    draw=blue!55!black
+  },
+  core/.style={
+    draw,
+    rounded corners=3pt,
+    very thick,
+    minimum width=2.4cm,
+    minimum height=1.0cm,
+    align=center,
+    fill=orange!12,
+    draw=orange!75!black
+  },
+  plant/.style={
+    draw,
+    rounded corners=2pt,
+    thick,
+    minimum width=2.0cm,
+    minimum height=0.9cm,
+    align=center,
+    fill=green!8,
+    draw=green!45!black
+  },
+  note/.style={
+    draw,
+    rounded corners=2pt,
+    align=left,
+    fill=gray!6,
+    draw=gray!45
+  }
+]
+
+\node[block] (guidance) at (0.0,0.0) {LOS / ILOS\\导引律};
+\node[core]  (heading)  at (3.3,0.0) {航向整形层\\$\psid \rightarrow \psiref$};
+\node[block] (pid)      at (6.7,0.0) {纵荡 / 航向\\PID};
+\node[plant] (usv)      at (10.0,0.0) {USV\\3DOF动力学};
+\node[core]  (speed)    at (5.0,-2.05) {速度调度层\\$e_s,\tau_{r,\mathrm{need}} \rightarrow \ud$};
+
+\draw[->, thick] (guidance) -- node[above] {$\psid$} (heading);
+\draw[->, thick] (heading) -- node[above] {$\psiref$} (pid);
+\draw[->, thick] (pid) -- node[above] {$\tau_u,\tau_r$} (usv);
+
+\draw[->, thick] (heading.south) |- node[pos=0.25,left] {$e_s=\psid-\psiref$} (speed.west);
+\draw[->, thick, dashed] (pid.south) |- node[pos=0.28,right] {$\tau_{r,\mathrm{need}}$} (speed.east);
+\draw[->, thick] (speed.north) -- node[right] {$\ud$} (pid.south);
+
+\draw[->, thick] (usv.south west) |- node[pos=0.30,left] {$(x,y)$} (guidance.south);
+\draw[->, thick] (usv.south) |- node[pos=0.32,right] {$r$} (heading.south east);
+\draw[->, thick] (usv.south east) |- node[pos=0.28,right] {$u,\psi$} (pid.south east);
+
+\node[note, text width=3.1cm] at (3.3,2.0) {
+  \textbf{作用1：}\\
+  将几何命令变为\\
+  满足偏航可达性的\\
+  可执行参考
+};
+
+\node[note, text width=3.45cm] at (5.0,-3.6) {
+  \textbf{作用2：}\\
+  根据整形残差和偏航力矩需求\\
+  在转角阶段主动降速，\\
+  为偏航控制释放推力余量
+};
+
+\node[note, text width=3.1cm] at (6.8,2.0) {
+  \textbf{保持基线结构：}\\
+  LOS/ILOS与PID主回路\\
+  保持不变，SHCS作为\\
+  可插拔增强层接入
+};
+
+\draw[dashed, thick, gray!65, rounded corners=4pt]
+  (1.8,1.15) rectangle (6.55,-2.75);
+\node[fill=white, inner sep=1pt, font=\small\bfseries, text=orange!70!black]
+  at (4.2,1.35) {SHCS可插拔增强层};
+
+\node[font=\scriptsize, text=gray!70, align=left] at (8.0,-2.05) {虚线表示：\\控制器内部的\\偏航力矩预估支路};
+
+\end{tikzpicture}

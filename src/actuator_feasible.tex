@@ -1,0 +1,68 @@
+\begin{tikzpicture}[
+  >=Stealth,
+  font=\footnotesize,
+  ttl/.style={font=\small\bfseries},
+  box/.style={draw, rounded corners=2pt, fill=gray!5, draw=gray!45, align=left}
+]
+
+% -------------------------------------------------------------------------
+% (a) feasible set
+% -------------------------------------------------------------------------
+\begin{scope}[xshift=0cm,yshift=0cm]
+  \node[ttl] at (2.8,3.15) {(a)\;推进器联合约束与工况迁移};
+
+  \draw[->,gray!65] (-3.8,0) -- (4.1,0) node[right] {$\tau_u$};
+  \draw[->,gray!65] (0,-2.35) -- (0,2.35) node[above] {$\tau_r$};
+
+  \draw[very thick, blue!70!black]
+    (0,1.95) -- (3.35,0) -- (0,-1.95) -- (-3.35,0) -- cycle;
+  \node[text=blue!70!black] at (0,2.22) {$|\tau_u|+\frac{2}{b}|\tau_r|\le 2T_{\max}$};
+
+  \filldraw[green!55!black] (2.55,0.18) circle (1.5pt);
+  \node[align=left, text=green!45!black] at (3.5,0.55) {直航\\高$\tau_u$、低$\tau_r$};
+
+  \filldraw[red!75!black] (1.18,1.05) circle (1.5pt);
+  \node[align=left, text=red!75!black] at (2.55,1.55) {急转\\低$\tau_u$、高$\tau_r$};
+
+  \draw[->, very thick, red!70!black] (2.45,0.22) -- (1.28,0.98);
+  \node[rotate=27, text=red!70!black] at (1.95,0.78) {SHCS调度方向};
+
+  \draw[densely dashed, gray!65] (1.18,1.05) -- (1.18,0);
+  \draw[densely dashed, gray!65] (2.55,0.18) -- (2.55,0);
+  \node at (1.18,-0.25) {$\tau_{u,\max}$};
+  \node at (2.55,-0.25) {$\tau_{u,\mathrm{nom}}$};
+\end{scope}
+
+% -------------------------------------------------------------------------
+% (b) scheduling law
+% -------------------------------------------------------------------------
+\begin{scope}[xshift=8.9cm,yshift=0cm]
+  \node[ttl] at (2.7,3.15) {(b)\;速度调度对转角压力的响应};
+
+  \draw[->,gray!65] (0,0) -- (5.25,0) node[right] {$|\es|,\;|\tau_{r,\mathrm{need}}|$增大};
+  \draw[->,gray!65] (0,0) -- (0,2.45) node[above] {$u_d/u_{\mathrm{nom}}$};
+
+  \draw[densely dashed, gray!55] (0,2.0) -- (5.0,2.0);
+  \draw[densely dashed, gray!55] (0,0.45) -- (5.0,0.45);
+  \draw[densely dashed, gray!45] (1.2,0) -- (1.2,2.0);
+  \node[left] at (0,2.0) {$1.0$};
+  \node[left] at (0,0.45) {$u_{\min}/u_{\mathrm{nom}}$};
+  \node[below] at (1.2,0) {$e_{s,\mathrm{db}}$};
+
+  \draw[thick, orange!80!black] (0.25,1.95) -- (1.2,1.95) -- (4.7,0.65);
+  \node[text=orange!80!black, align=left] at (3.9,1.55) {$u_{d,s}$:\\残差越大\\降速越明显};
+
+  \draw[thick, teal!70!black] (0.25,1.95) .. controls (1.4,1.92) and (2.25,1.65) .. (4.7,0.52);
+  \node[text=teal!70!black, align=left] at (4.05,0.95) {$u_{d,c}$:\\偏航需求越高\\可用纵荡越低};
+
+  \draw[very thick, red!75!black] (0.25,1.95) -- (1.2,1.95) -- (2.2,1.55) -- (3.15,0.98) -- (4.7,0.52);
+  \node[text=red!75!black, fill=white, inner sep=1pt] at (2.75,1.23) {$u_d=\min(u_{d,s},u_{d,c})$};
+
+  \node[box, text width=4.25cm] at (2.62,-0.95) {
+    转角越急，整形残差与偏航力矩需求越高，\\
+    SHCS越倾向于降低纵荡速度命令，\\
+    从而把推力余量留给偏航控制.
+  };
+\end{scope}
+
+\end{tikzpicture}
