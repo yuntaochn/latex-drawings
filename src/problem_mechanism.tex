@@ -1,12 +1,12 @@
-\documentclass[tikz,border=6pt]{standalone}
+﻿\documentclass[tikz,border=6pt]{standalone}
 \usepackage{ctex}
-\usetikzlibrary{calc,arrows.meta,angles,quotes}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta,calc,decorations.pathreplacing}
+
+\newcommand{\psid}{\psi_d}
 
 \begin{document}
 
-% =========================================================================
-% 问题机理图：航向突变 + 推进器资源竞争
-% =========================================================================
 \begin{tikzpicture}[
   >=Stealth,
   lbl/.style={font=\footnotesize},
@@ -14,9 +14,8 @@
   every node/.style={inner sep=2pt}
 ]
 
-% left panel ---------------------------------------------------------------
 \begin{scope}[xshift=0cm,yshift=0cm]
-  \node[ttl] at (2.8,3.6) {(a)\;航点切换导致航向命令突变};
+  \node[ttl] at (2.8,3.6) {(a) 航点切换导致航向指令突变};
 
   \draw[very thick, gray!55] (0,0.2) -- (2.4,0.2) -- (2.4,2.8);
   \filldraw[black] (0,0.2) circle (1.1pt) node[below left,lbl] {$W_k$};
@@ -33,21 +32,20 @@
   \node[lbl, red!75!black] at (1.2,0.55) {$\alpha_{k+1}$};
 
   \draw[decorate,decoration={brace,amplitude=3pt},thick] (2.65,0.1) -- (2.65,2.75)
-      node[midway,right=4pt,lbl] {$\Delta\psid \approx \pi/2$};
+      node[midway,right=4pt,lbl] {$\Delta\psi_d \approx \pi/2$};
 
   \begin{scope}[xshift=4.2cm,yshift=0.2cm]
     \draw[->,gray!60] (-0.2,0) -- (2.2,0) node[right,lbl] {$t$};
-    \draw[->,gray!60] (0,-0.2) -- (0,1.6) node[above,lbl] {$\psid$};
+    \draw[->,gray!60] (0,-0.2) -- (0,1.6) node[above,lbl] {$\psi_d$};
     \draw[very thick, red!70] (0,0.2)--(0.8,0.2)--(0.8,1.35)--(2.0,1.35);
     \draw[dashed,gray!60] (0.8,0)--(0.8,1.35);
     \node[lbl] at (0.8,-0.28) {$t_s$};
-    \node[lbl, red!70] at (1.5,1.55) {LOS几何命令};
+    \node[lbl, red!70] at (1.5,1.55) {LOS 几何指令};
   \end{scope}
 \end{scope}
 
-% right panel --------------------------------------------------------------
 \begin{scope}[xshift=8.9cm,yshift=0cm]
-  \node[ttl] at (2.9,3.6) {(b)\;转角阶段存在推进器资源竞争};
+  \node[ttl] at (2.9,3.6) {(b) 转角阶段存在推进器资源竞争};
 
   \draw[->,gray!60] (-0.4,0) -- (4.1,0) node[right,lbl] {$\tau_u$};
   \draw[->,gray!60] (0,-2.1) -- (0,2.1) node[above,lbl] {$\tau_r$};
@@ -62,12 +60,12 @@
   \node[lbl, red!75!black] at (1.8,1.45) {急转工况};
 
   \draw[->, thick, red!75!black] (2.15,0.3) -- (1.08,1.02);
-  \node[lbl] at (2.55,-0.45) {高$\tau_u$};
-  \node[lbl] at (0.72,1.72) {高$\tau_r$};
+  \node[lbl] at (2.55,-0.45) {高 $\tau_u$};
+  \node[lbl] at (0.72,1.72) {高 $\tau_r$};
 
   \draw[rounded corners=2pt, fill=yellow!10, draw=yellow!45!black]
       (0.2,-1.8) rectangle (4.1,-0.95);
-  \node[lbl, align=left] at (2.15,-1.38) {偏航力矩需求增大 $\Rightarrow$ \\ 纵荡推力余量下降};
+  \node[lbl, align=left] at (2.15,-1.38) {偏航力矩需求增大 $\Rightarrow$\\纵向推力余量下降};
 \end{scope}
 
 \end{tikzpicture}

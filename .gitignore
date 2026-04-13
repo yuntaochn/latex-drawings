@@ -1,4 +1,4 @@
-## Core latex/pdflatex auxiliary files:
+﻿## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
 *.log
@@ -325,12 +325,11 @@ TSWLatexianTemp*
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
 
-*.pdf 
-# 重点：忽略源码目录下的 PDF（本地预览生成的）
+*.pdf
 src/*.pdf
-src/*.svg 
+src/*.svg
+.local/
 
-# 允许追踪 output 目录下的 PDF（由 Action 统一生成的）
 !output/*.pdf
 !output/*.svg
 

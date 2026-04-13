@@ -37,40 +37,9 @@ jobs:
       - name: Compile TeX files to PDF and SVG
         env:
           CTEX_FONTSET: fandol
+          OUTPUT_DIR: output
         run: |
-          set -euo pipefail
-          shopt -s nullglob
-
-          mkdir -p output
-          tex_files=(src/*.tex)
-
-          if [ ${#tex_files[@]} -eq 0 ]; then
-            echo "No TeX files found in src/"
-            exit 1
-          fi
-
-          for tex_file in "${tex_files[@]}"; do
-            latexmk \
-              -xelatex \
-              -interaction=nonstopmode \
-              -halt-on-error \
-              -file-line-error \
-              -outdir=output \
-              "${tex_file}"
-
-            pdf_file="output/$(basename "${tex_file%.tex}").pdf"
-            svg_file="output/$(basename "${tex_file%.tex}").svg"
-
-            if [ ! -f "${pdf_file}" ]; then
-              echo "Expected PDF not found: ${pdf_file}"
-              exit 1
-            fi
-
-            pdf2svg "${pdf_file}" "${svg_file}"
-          done
-
-          ls -lh output/*.pdf
-          ls -lh output/*.svg
+          ./scripts/build_assets.sh
 
       - name: Upload PDF and SVG artifacts
         uses: actions/upload-artifact@v4
