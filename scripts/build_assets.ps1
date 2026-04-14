@@ -1,7 +1,10 @@
 $ErrorActionPreference = "Stop"
 
 $RootDir = Split-Path -Parent $PSScriptRoot
-$SrcDir = Join-Path $RootDir "src"
+$SourceDirs = @(
+    @{ Name = "src"; Path = Join-Path $RootDir "src" }
+    @{ Name = "drafts"; Path = Join-Path $RootDir "drafts" }
+)
 
 if ($env:OUTPUT_DIR) {
     $OutputDir = if ([System.IO.Path]::IsPathRooted($env:OUTPUT_DIR)) {
@@ -39,9 +42,22 @@ $SvgConverter = Get-SvgConverter
 
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
-$TexFiles = Get-ChildItem -LiteralPath $SrcDir -Filter *.tex | Sort-Object Name
-if ($TexFiles.Count -eq 0) {
-    throw "No TeX files found in $SrcDir"
+$TexJobs = foreach ($Source in $SourceDirs) {
+    if (Test-Path -LiteralPath $Source.Path) {
+        Get-ChildItem -LiteralPath $Source.Path -Filter *.tex -File |
+            Sort-Object FullName |
+            ForEach-Object {
+                [PSCustomObject]@{
+                    SourceName = $Source.Name
+                    TexFile    = $_
+                }
+            }
+    }
+}
+
+if ($TexJobs.Count -eq 0) {
+    $SourcePaths = $SourceDirs | ForEach-Object { $_.Path }
+    throw "No TeX files found in source directories: $($SourcePaths -join ', ')"
 }
 
 if (-not $env:CTEX_FONTSET) {
@@ -50,19 +66,23 @@ if (-not $env:CTEX_FONTSET) {
 
 $KeepIntermediates = [System.IO.Path]::GetFullPath($OutputDir).TrimEnd('\', '/') -ne (Join-Path $RootDir ".local/output")
 
-foreach ($TexFile in $TexFiles) {
+foreach ($TexJob in $TexJobs) {
+    $TexFile = $TexJob.TexFile
+    $TargetDir = Join-Path $OutputDir $TexJob.SourceName
     $BaseName = [System.IO.Path]::GetFileNameWithoutExtension($TexFile.Name)
-    $PdfFile = Join-Path $OutputDir "$BaseName.pdf"
-    $SvgFile = Join-Path $OutputDir "$BaseName.svg"
-    $XdvFile = Join-Path $OutputDir "$BaseName.xdv"
+    $PdfFile = Join-Path $TargetDir "$BaseName.pdf"
+    $SvgFile = Join-Path $TargetDir "$BaseName.svg"
+    $XdvFile = Join-Path $TargetDir "$BaseName.xdv"
 
-    Write-Host "Compiling $($TexFile.Name)"
+    New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
+
+    Write-Host "Compiling $($TexFile.Name) -> $($TexJob.SourceName)/"
     & latexmk `
         -xelatex `
         -interaction=nonstopmode `
         -halt-on-error `
         -file-line-error `
-        -outdir="$OutputDir" `
+        -outdir="$TargetDir" `
         "$($TexFile.FullName)"
 
     if (-not (Test-Path -LiteralPath $PdfFile)) {
@@ -82,7 +102,7 @@ foreach ($TexFile in $TexFiles) {
 }
 
 if (-not $KeepIntermediates) {
-    Get-ChildItem -LiteralPath $OutputDir -File |
+    Get-ChildItem -LiteralPath $OutputDir -Recurse -File |
         Where-Object {
             $_.Extension -in ".aux", ".fdb_latexmk", ".fls", ".log", ".out", ".xdv" -or
             $_.BaseName -like "xelatex*"
@@ -92,4 +112,7 @@ if (-not $KeepIntermediates) {
 
 Write-Host ""
 Write-Host "Generated files in ${OutputDir}:"
-Get-ChildItem -LiteralPath $OutputDir -File | Where-Object { $_.Extension -in ".pdf", ".svg" } | Sort-Object Name | Select-Object Name, Length
+Get-ChildItem -LiteralPath $OutputDir -Recurse -File |
+    Where-Object { $_.Extension -in ".pdf", ".svg" } |
+    Sort-Object FullName |
+    Select-Object FullName, Length

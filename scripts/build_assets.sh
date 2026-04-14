@@ -4,7 +4,7 @@ set -euo pipefail
 shopt -s nullglob
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SRC_DIR="${ROOT_DIR}/src"
+SOURCE_ENTRIES=("src:${ROOT_DIR}/src" "drafts:${ROOT_DIR}/drafts")
 OUTPUT_DIR="${OUTPUT_DIR:-${ROOT_DIR}/.local/output}"
 
 if [[ "${OUTPUT_DIR}" != /* ]]; then
@@ -34,10 +34,19 @@ fi
 
 mkdir -p "${OUTPUT_DIR}"
 
-tex_files=("${SRC_DIR}"/*.tex)
+tex_jobs=()
+for source_entry in "${SOURCE_ENTRIES[@]}"; do
+  source_name="${source_entry%%:*}"
+  source_dir="${source_entry#*:}"
+  if [ -d "${source_dir}" ]; then
+    for tex_file in "${source_dir}"/*.tex; do
+      tex_jobs+=("${source_name}|${tex_file}")
+    done
+  fi
+done
 
-if [ ${#tex_files[@]} -eq 0 ]; then
-  echo "No TeX files found in ${SRC_DIR}" >&2
+if [ ${#tex_jobs[@]} -eq 0 ]; then
+  echo "No TeX files found in source directories." >&2
   exit 1
 fi
 
@@ -49,20 +58,25 @@ if [ "${OUTPUT_DIR}" = "${LOCAL_OUTPUT_DIR}" ]; then
   KEEP_INTERMEDIATES=0
 fi
 
-for tex_file in "${tex_files[@]}"; do
+for tex_job in "${tex_jobs[@]}"; do
+  source_name="${tex_job%%|*}"
+  tex_file="${tex_job#*|}"
+  target_dir="${OUTPUT_DIR}/${source_name}"
   base_name="$(basename "${tex_file%.tex}")"
-  pdf_file="${OUTPUT_DIR}/${base_name}.pdf"
-  svg_file="${OUTPUT_DIR}/${base_name}.svg"
-  xdv_file="${OUTPUT_DIR}/${base_name}.xdv"
+  pdf_file="${target_dir}/${base_name}.pdf"
+  svg_file="${target_dir}/${base_name}.svg"
+  xdv_file="${target_dir}/${base_name}.xdv"
 
-  echo "Compiling ${base_name}.tex"
+  mkdir -p "${target_dir}"
+
+  echo "Compiling ${base_name}.tex -> ${source_name}/"
 
   latexmk \
     -xelatex \
     -interaction=nonstopmode \
     -halt-on-error \
     -file-line-error \
-    -outdir="${OUTPUT_DIR}" \
+    -outdir="${target_dir}" \
     "${tex_file}"
 
   if [ ! -f "${pdf_file}" ]; then
@@ -84,15 +98,17 @@ for tex_file in "${tex_files[@]}"; do
 done
 
 if [ "${KEEP_INTERMEDIATES}" -eq 0 ]; then
-  rm -f "${OUTPUT_DIR}"/*.aux \
-        "${OUTPUT_DIR}"/*.fdb_latexmk \
-        "${OUTPUT_DIR}"/*.fls \
-        "${OUTPUT_DIR}"/*.log \
-        "${OUTPUT_DIR}"/*.out \
-        "${OUTPUT_DIR}"/*.xdv \
-        "${OUTPUT_DIR}"/xelatex*.fls
+  find "${OUTPUT_DIR}" -type f \( \
+    -name "*.aux" -o \
+    -name "*.fdb_latexmk" -o \
+    -name "*.fls" -o \
+    -name "*.log" -o \
+    -name "*.out" -o \
+    -name "*.xdv" -o \
+    -name "xelatex*.fls" \
+  \) -delete
 fi
 
 echo
 echo "Generated files in ${OUTPUT_DIR}:"
-ls -lh "${OUTPUT_DIR}"/*.pdf "${OUTPUT_DIR}"/*.svg
+find "${OUTPUT_DIR}" -type f \( -name "*.pdf" -o -name "*.svg" \) -print

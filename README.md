@@ -31,6 +31,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_assets.ps1
 
 本地构建结果默认写入 `.local/output/`，不会覆盖仓库中的 `output/`。
 在这个本地目录下，构建完成后会自动清理中间文件，只保留 `pdf/svg`。
+默认会编译 `src/` 与 `drafts/` 下的所有 `.tex` 文件。
+其中 `src/` 产物输出到 `.local/output/src/`，`drafts/` 产物输出到 `.local/output/drafts/`。
 
 如果需要显式写入 `output/`，可以先设置环境变量：
 
