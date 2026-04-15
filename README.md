@@ -33,6 +33,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_assets.ps1
 在这个本地目录下，构建完成后会自动清理中间文件，只保留 `pdf/svg`。
 默认会编译 `src/` 与 `drafts/` 下的所有 `.tex` 文件。
 其中 `src/` 产物输出到 `.local/output/src/`，`drafts/` 产物输出到 `.local/output/drafts/`。
+可通过 `SOURCE_NAMES` 指定要编译的目录，例如仅编译 `src`：`SOURCE_NAMES=src`。
 
 如果需要显式写入 `output/`，可以先设置环境变量：
 
@@ -40,6 +41,16 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_assets.ps1
 $env:OUTPUT_DIR = "output"
 powershell -ExecutionPolicy Bypass -File .\scripts\build_assets.ps1
 ```
+
+可选：通过 `KEEP_INTERMEDIATES` 控制是否保留中间文件（支持 `0/1/true/false/yes/no`）：
+
+```powershell
+$env:OUTPUT_DIR = "output"
+$env:KEEP_INTERMEDIATES = "0"
+powershell -ExecutionPolicy Bypass -File .\scripts\build_assets.ps1
+```
+
+CI（GitHub Actions）默认设置为：`SOURCE_NAMES=src` 且 `OUTPUT_DIR=output`，只更新 `output/src/` 下产物。
 
 依赖：
 

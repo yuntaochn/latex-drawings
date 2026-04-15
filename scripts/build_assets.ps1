@@ -1,10 +1,16 @@
 $ErrorActionPreference = "Stop"
 
 $RootDir = Split-Path -Parent $PSScriptRoot
-$SourceDirs = @(
-    @{ Name = "src"; Path = Join-Path $RootDir "src" }
-    @{ Name = "drafts"; Path = Join-Path $RootDir "drafts" }
-)
+$SourceNamesRaw = if ($env:SOURCE_NAMES) { $env:SOURCE_NAMES } else { "src,drafts" }
+$SourceNames = $SourceNamesRaw -split '[,\s]+' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+
+if ($SourceNames.Count -eq 0) {
+    throw "No source directories configured. Set SOURCE_NAMES (e.g. src,drafts)."
+}
+
+$SourceDirs = $SourceNames | ForEach-Object {
+    @{ Name = $_; Path = Join-Path $RootDir $_ }
+}
 
 if ($env:OUTPUT_DIR) {
     $OutputDir = if ([System.IO.Path]::IsPathRooted($env:OUTPUT_DIR)) {
@@ -65,6 +71,14 @@ if (-not $env:CTEX_FONTSET) {
 }
 
 $KeepIntermediates = [System.IO.Path]::GetFullPath($OutputDir).TrimEnd('\', '/') -ne (Join-Path $RootDir ".local/output")
+
+if ($env:KEEP_INTERMEDIATES) {
+    switch -Regex ($env:KEEP_INTERMEDIATES) {
+        '^(0|false|no)$' { $KeepIntermediates = $false; break }
+        '^(1|true|yes)$' { $KeepIntermediates = $true; break }
+        default { throw "Invalid KEEP_INTERMEDIATES value: $($env:KEEP_INTERMEDIATES). Use 0/1/true/false." }
+    }
+}
 
 foreach ($TexJob in $TexJobs) {
     $TexFile = $TexJob.TexFile

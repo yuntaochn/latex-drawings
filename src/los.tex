@@ -34,14 +34,16 @@
 		\fill (Plos) circle (1.2pt);
 		\node[above] at (Plos) {$p_{\mathrm{LOS}}$};
 		
-		% 横向误差 e
-		\draw[thick] (P) -- (Pproj);
-		\node[midway,left] {$e$};
-		
-		% 前视距离 Delta
-		\draw[<->] (Pproj) -- (Plos);
-		\node[midway,above] {$\Delta$};
-		
+        % 横向误差 e
+        \draw[thick] (P) -- (Pproj)
+        node[pos=0.52, left=2pt] {$e_y$};
+        % node[pos=0.52, sloped, above=2pt] {$e$};
+
+        % 前视距离 Delta
+        \draw[<->] (Pproj) -- (Plos)
+        % node[pos=0.55, sloped, above=2pt] {$\Delta$};
+        node[pos=0.55, above=2pt] {$\Delta$};
+
 		% LOS 向量
 		\draw[->,thick,dashed] (P) -- (Plos) node[midway,above right] {LOS};
 		

@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - "src/**"
+      - "scripts/build_assets.sh"
+      - "scripts/build_assets.ps1"
       - ".github/workflows/compile-tikz.yml"
   pull_request:
     paths:
       - "src/**"
+      - "scripts/build_assets.sh"
+      - "scripts/build_assets.ps1"
       - ".github/workflows/compile-tikz.yml"
   workflow_dispatch:
 
@@ -37,7 +41,9 @@ jobs:
       - name: Compile TeX files to PDF and SVG
         env:
           CTEX_FONTSET: fandol
+          SOURCE_NAMES: src
           OUTPUT_DIR: output
+          KEEP_INTERMEDIATES: "0"
         run: |
           ./scripts/build_assets.sh
 
@@ -46,8 +52,8 @@ jobs:
         with:
           name: compiled-assets
           path: |
-            output/*.pdf
-            output/*.svg
+            output/src/*.pdf
+            output/src/*.svg
           if-no-files-found: error
 
       - name: Commit generated PDF and SVG files
@@ -55,4 +61,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ci: update compiled assets"
-          file_pattern: "output/*.pdf output/*.svg"
+          file_pattern: "output/src/*.pdf output/src/*.svg"

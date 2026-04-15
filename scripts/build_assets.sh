@@ -4,11 +4,23 @@ set -euo pipefail
 shopt -s nullglob
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SOURCE_ENTRIES=("src:${ROOT_DIR}/src" "drafts:${ROOT_DIR}/drafts")
 OUTPUT_DIR="${OUTPUT_DIR:-${ROOT_DIR}/.local/output}"
+SOURCE_NAMES_RAW="${SOURCE_NAMES:-src,drafts}"
+SOURCE_ENTRIES=()
 
 if [[ "${OUTPUT_DIR}" != /* ]]; then
   OUTPUT_DIR="${ROOT_DIR}/${OUTPUT_DIR}"
+fi
+
+SOURCE_NAMES_NORMALIZED="$(echo "${SOURCE_NAMES_RAW}" | tr ',' ' ')"
+for source_name in ${SOURCE_NAMES_NORMALIZED}; do
+  source_dir="${ROOT_DIR}/${source_name}"
+  SOURCE_ENTRIES+=("${source_name}:${source_dir}")
+done
+
+if [ ${#SOURCE_ENTRIES[@]} -eq 0 ]; then
+  echo "No source directories configured. Set SOURCE_NAMES (e.g. src,drafts)." >&2
+  exit 1
 fi
 
 require_command() {
@@ -56,6 +68,21 @@ LOCAL_OUTPUT_DIR="${ROOT_DIR}/.local/output"
 KEEP_INTERMEDIATES=1
 if [ "${OUTPUT_DIR}" = "${LOCAL_OUTPUT_DIR}" ]; then
   KEEP_INTERMEDIATES=0
+fi
+
+if [ -n "${KEEP_INTERMEDIATES:-}" ]; then
+  case "${KEEP_INTERMEDIATES}" in
+    0|false|FALSE|no|NO)
+      KEEP_INTERMEDIATES=0
+      ;;
+    1|true|TRUE|yes|YES)
+      KEEP_INTERMEDIATES=1
+      ;;
+    *)
+      echo "Invalid KEEP_INTERMEDIATES value: ${KEEP_INTERMEDIATES}. Use 0/1/true/false." >&2
+      exit 1
+      ;;
+  esac
 fi
 
 for tex_job in "${tex_jobs[@]}"; do
