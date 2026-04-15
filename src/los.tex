@@ -91,8 +91,8 @@
 		\let\chiD\pgfmathresult
 		
 		% 你可以手动调这两个偏差，控制图的观感
-		\pgfmathsetmacro{\chiActual}{\chiD+10}   % 实际航迹角 chi
-		\pgfmathsetmacro{\psiAngle}{\chiActual - 16} % 实际航向角 psi
+		\pgfmathsetmacro{\chiActual}{\chiD+15}   % 实际航迹角 chi
+		\pgfmathsetmacro{\psiAngle}{\chiActual-10} % 实际航向角 psi
 		% beta = chi - psi = 16 deg
 
 		% -------------------------------------------------
@@ -124,13 +124,14 @@
 			\coordinate (BowTip) at ( \L/2,      0);
 			\coordinate (BowL)   at ( \Lrect/2, -\B/2);
 			
-			\draw[thick, =blue!10, fill opacity=0.25]
+%			\draw[thick, =blue!10, fill opacity=0.25]
+			\draw[thick]
 			(SternL) -- (SternR) -- (BowR) -- (BowTip) -- (BowL) -- cycle;
 			
-			\draw[->, dashed, red!80!black]
-			(0,0) -- (2.2,0) coordinate (Xb_axis) node[right] {$x_B$};
+			\draw[->, dashed] %, red!80!black]
+			(0,0) -- (3,0) coordinate (Xb_axis) node[above] {$x_B$};
 			
-			\draw[->, dashed, red!80!black]
+			\draw[->, dashed] %, red!80!black]
 			(0,0) -- (0,-1) node[above] {$y_B$};
 			
 		\end{scope}
@@ -143,8 +144,8 @@
 		\draw pic[
 		draw,
 		<-,
-		angle radius=20mm,
-		angle eccentricity=1.2,
+		angle radius=25mm,
+		angle eccentricity=1.1,
 		"$\psi$"
 		] {angle = PsiPoint--P--NorthRef};
 		
@@ -152,7 +153,7 @@
 		\draw pic[
 		draw,
 		<-,
-		angle radius=14mm,
+		angle radius=18mm,
 		angle eccentricity=1.18,
 		"$\chi$"
 		] {angle = ChiPoint--P--NorthRef};
@@ -161,7 +162,7 @@
 		\draw pic[
 		draw,
 		<-,
-		angle radius=14mm,
+		angle radius=19mm,
 		angle eccentricity=1.18,
 		"$\beta$"
 		] {angle = PsiPoint--P--ChiPoint};
@@ -170,7 +171,7 @@
 		\draw pic[
 		draw,
 		<-,
-		angle radius=10mm,
+		angle radius=12mm,
 		angle eccentricity=1.18,
 		"$\chi_d$"
 		] {angle = ChiDPoint--P--NorthRef};
