@@ -61,4 +61,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ci: update compiled assets"
-          file_pattern: "output/src/*.pdf output/src/*.svg"
+          file_pattern: "output/src"
