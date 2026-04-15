@@ -23,6 +23,11 @@ if [ ${#SOURCE_ENTRIES[@]} -eq 0 ]; then
   exit 1
 fi
 
+FLATTEN_OUTPUT=0
+if [ ${#SOURCE_ENTRIES[@]} -eq 1 ]; then
+  FLATTEN_OUTPUT=1
+fi
+
 require_command() {
   local cmd="$1"
 
@@ -41,6 +46,15 @@ elif command -v pdf2svg >/dev/null 2>&1; then
   SVG_CONVERTER="pdf2svg"
 else
   echo "Missing required SVG converter: dvisvgm or pdf2svg" >&2
+  exit 1
+fi
+
+if command -v pdftoppm >/dev/null 2>&1; then
+  PNG_CONVERTER="pdftoppm"
+elif command -v pdftocairo >/dev/null 2>&1; then
+  PNG_CONVERTER="pdftocairo"
+else
+  echo "Missing required PNG converter: pdftocairo or pdftoppm" >&2
   exit 1
 fi
 
@@ -88,15 +102,22 @@ fi
 for tex_job in "${tex_jobs[@]}"; do
   source_name="${tex_job%%|*}"
   tex_file="${tex_job#*|}"
-  target_dir="${OUTPUT_DIR}/${source_name}"
+  if [ "${FLATTEN_OUTPUT}" -eq 1 ]; then
+    target_dir="${OUTPUT_DIR}"
+    target_label="./"
+  else
+    target_dir="${OUTPUT_DIR}/${source_name}"
+    target_label="${source_name}/"
+  fi
   base_name="$(basename "${tex_file%.tex}")"
   pdf_file="${target_dir}/${base_name}.pdf"
+  png_file="${target_dir}/${base_name}.png"
   svg_file="${target_dir}/${base_name}.svg"
   xdv_file="${target_dir}/${base_name}.xdv"
 
   mkdir -p "${target_dir}"
 
-  echo "Compiling ${base_name}.tex -> ${source_name}/"
+  echo "Compiling ${base_name}.tex -> ${target_label}"
 
   latexmk \
     -xelatex \
@@ -108,6 +129,18 @@ for tex_job in "${tex_jobs[@]}"; do
 
   if [ ! -f "${pdf_file}" ]; then
     echo "Expected PDF not found: ${pdf_file}" >&2
+    exit 1
+  fi
+
+  echo "Converting ${base_name}.pdf -> ${base_name}.png"
+  if [ "${PNG_CONVERTER}" = "pdftoppm" ]; then
+    pdftoppm -png -singlefile "${pdf_file}" "${target_dir}/${base_name}"
+  else
+    pdftocairo -png -singlefile "${pdf_file}" "${target_dir}/${base_name}"
+  fi
+
+  if [ ! -f "${png_file}" ]; then
+    echo "Expected PNG not found: ${png_file}" >&2
     exit 1
   fi
 
@@ -138,4 +171,4 @@ fi
 
 echo
 echo "Generated files in ${OUTPUT_DIR}:"
-find "${OUTPUT_DIR}" -type f \( -name "*.pdf" -o -name "*.svg" \) -print
+find "${OUTPUT_DIR}" -type f \( -name "*.pdf" -o -name "*.png" -o -name "*.svg" \) -print

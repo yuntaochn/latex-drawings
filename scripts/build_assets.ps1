@@ -8,6 +8,8 @@ if ($SourceNames.Count -eq 0) {
     throw "No source directories configured. Set SOURCE_NAMES (e.g. src,drafts)."
 }
 
+$FlattenOutput = $SourceNames.Count -eq 1
+
 $SourceDirs = $SourceNames | ForEach-Object {
     @{ Name = $_; Path = Join-Path $RootDir $_ }
 }
@@ -42,9 +44,22 @@ function Get-SvgConverter {
     throw "Missing required SVG converter: dvisvgm or pdf2svg"
 }
 
+function Get-PngConverter {
+    if (Get-Command pdftoppm -ErrorAction SilentlyContinue) {
+        return "pdftoppm"
+    }
+
+    if (Get-Command pdftocairo -ErrorAction SilentlyContinue) {
+        return "pdftocairo"
+    }
+
+    throw "Missing required PNG converter: pdftocairo or pdftoppm"
+}
+
 Require-Command latexmk
 Require-Command xelatex
 $SvgConverter = Get-SvgConverter
+$PngConverter = Get-PngConverter
 
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
@@ -82,15 +97,23 @@ if ($env:KEEP_INTERMEDIATES) {
 
 foreach ($TexJob in $TexJobs) {
     $TexFile = $TexJob.TexFile
-    $TargetDir = Join-Path $OutputDir $TexJob.SourceName
+    if ($FlattenOutput) {
+        $TargetDir = $OutputDir
+        $TargetLabel = "./"
+    } else {
+        $TargetDir = Join-Path $OutputDir $TexJob.SourceName
+        $TargetLabel = "$($TexJob.SourceName)/"
+    }
     $BaseName = [System.IO.Path]::GetFileNameWithoutExtension($TexFile.Name)
     $PdfFile = Join-Path $TargetDir "$BaseName.pdf"
+    $PngFile = Join-Path $TargetDir "$BaseName.png"
+    $PngOutputBase = Join-Path $TargetDir $BaseName
     $SvgFile = Join-Path $TargetDir "$BaseName.svg"
     $XdvFile = Join-Path $TargetDir "$BaseName.xdv"
 
     New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
 
-    Write-Host "Compiling $($TexFile.Name) -> $($TexJob.SourceName)/"
+    Write-Host "Compiling $($TexFile.Name) -> $TargetLabel"
     & latexmk `
         -xelatex `
         -interaction=nonstopmode `
@@ -101,6 +124,17 @@ foreach ($TexJob in $TexJobs) {
 
     if (-not (Test-Path -LiteralPath $PdfFile)) {
         throw "Expected PDF not found: $PdfFile"
+    }
+
+    Write-Host "Converting $BaseName.pdf -> $BaseName.png"
+    if ($PngConverter -eq "pdftoppm") {
+        & pdftoppm -png -singlefile "$PdfFile" "$PngOutputBase"
+    } else {
+        & pdftocairo -png -singlefile "$PdfFile" "$PngOutputBase"
+    }
+
+    if (-not (Test-Path -LiteralPath $PngFile)) {
+        throw "Expected PNG not found: $PngFile"
     }
 
     Write-Host "Converting $BaseName.pdf -> $BaseName.svg"
@@ -127,6 +161,6 @@ if (-not $KeepIntermediates) {
 Write-Host ""
 Write-Host "Generated files in ${OutputDir}:"
 Get-ChildItem -LiteralPath $OutputDir -Recurse -File |
-    Where-Object { $_.Extension -in ".pdf", ".svg" } |
+    Where-Object { $_.Extension -in ".pdf", ".png", ".svg" } |
     Sort-Object FullName |
     Select-Object FullName, Length

@@ -30,9 +30,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_assets.ps1
 ```
 
 本地构建结果默认写入 `.local/output/`，不会覆盖仓库中的 `output/`。
-在这个本地目录下，构建完成后会自动清理中间文件，只保留 `pdf/svg`。
+在这个本地目录下，构建完成后会自动清理中间文件，只保留 `pdf/png/svg`。
 默认会编译 `src/` 与 `drafts/` 下的所有 `.tex` 文件。
-其中 `src/` 产物输出到 `.local/output/src/`，`drafts/` 产物输出到 `.local/output/drafts/`。
+当同时编译多个目录时，会分别输出到对应子目录，例如 `.local/output/src/` 与 `.local/output/drafts/`。
+如果只编译单个目录（例如 `SOURCE_NAMES=src`），产物会直接输出到目标目录根下。
 可通过 `SOURCE_NAMES` 指定要编译的目录，例如仅编译 `src`：`SOURCE_NAMES=src`。
 
 如果需要显式写入 `output/`，可以先设置环境变量：
@@ -50,7 +51,7 @@ $env:KEEP_INTERMEDIATES = "0"
 powershell -ExecutionPolicy Bypass -File .\scripts\build_assets.ps1
 ```
 
-CI（GitHub Actions）默认设置为：`SOURCE_NAMES=src` 且 `OUTPUT_DIR=output`，只更新 `output/src/` 下产物。
+CI（GitHub Actions）默认设置为：`SOURCE_NAMES=src` 且 `OUTPUT_DIR=output`，产物直接写入 `output/`，包含 `pdf/png/svg` 三种格式。
 
 依赖：
 
@@ -59,4 +60,5 @@ latexmk
 xelatex
 dvisvgm   # 推荐，TeX Live 通常自带
 # 或 pdf2svg
+pdftoppm  # 或 pdftocairo，用于生成 PNG
 ```

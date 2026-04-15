@@ -33,12 +33,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             latexmk \
+            poppler-utils \
             pdf2svg \
             texlive-xetex \
             texlive-lang-chinese \
             texlive-latex-extra
 
-      - name: Compile TeX files to PDF and SVG
+      - name: Clean generated asset files
+        run: |
+          mkdir -p output
+          find output -type f \( -name "*.pdf" -o -name "*.png" -o -name "*.svg" \) -delete
+          find output -depth -type d -empty -delete
+          mkdir -p output
+
+      - name: Compile TeX files to PDF, PNG, and SVG
         env:
           CTEX_FONTSET: fandol
           SOURCE_NAMES: src
@@ -47,18 +55,19 @@ jobs:
         run: |
           ./scripts/build_assets.sh
 
-      - name: Upload PDF and SVG artifacts
+      - name: Upload PDF, PNG, and SVG artifacts
         uses: actions/upload-artifact@v4
         with:
           name: compiled-assets
           path: |
-            output/src/*.pdf
-            output/src/*.svg
+            output/*.pdf
+            output/*.png
+            output/*.svg
           if-no-files-found: error
 
-      - name: Commit generated PDF and SVG files
+      - name: Commit generated PDF, PNG, and SVG files
         if: github.event_name == 'push'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ci: update compiled assets"
-          file_pattern: "output/src"
+          file_pattern: "output"
