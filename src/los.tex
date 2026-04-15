@@ -1,180 +1,160 @@
 \documentclass[tikz,border=5pt]{standalone}
-\usetikzlibrary{arrows.meta}
-\usetikzlibrary{angles,quotes,calc}
+\usetikzlibrary{arrows.meta,calc,angles,quotes}
 
 \begin{document}
 	\begin{tikzpicture}[>=Latex]
-		% 坐标轴
+		
+		% =================================================
+		% 1. 全局坐标系
+		% =================================================
 		\draw[->,thick] (0,0) -- (18,0) node[below] {X(East)};
-		\draw[->,thick] (0,0) -- (0,12) node[left] {Y(North)};
+		\draw[->,thick] (0,0) -- (0,15) node[left]  {Y(North)};
 		
-		% 两个航点
-		\coordinate (Pk) at (2, 5);
-		\coordinate (Pkp) at (16, 13.17);
+		% =================================================
+		% 2. 路径、当前位置、投影点、LOS点
+		% =================================================
+		\coordinate (Pk)  at (2,5);
+		\coordinate (Pkp) at (16,13.17);
+		\coordinate (P)   at (7.5,1);
 		
-		% 路径线
+		% 路径
 		\draw[thick] (Pk) -- (Pkp);
-		
-		% 航点
-		\fill (Pk) circle (1.2pt);
+		\fill (Pk)  circle (1.2pt);
 		\fill (Pkp) circle (1.2pt);
-		
-		% 标签
-		\node[below left] at (Pk) {$p_k$};
+		\node[below left]  at (Pk)  {$p_k$};
 		\node[above right] at (Pkp) {$p_{k+1}$};
 		
-		% 船的位置
-		\coordinate (P) at (7.5, 1);
-		\fill (P) circle (1.2pt);
-		\node[above left] at (P) {$p$};
-		
-		
-		% 投影点（手工给定）
-		\coordinate (Pproj) at (4.5, 6.46);
+		% 自动正交投影点
+		\coordinate (Pproj) at ($(Pk)!(P)!(Pkp)$);
 		\fill (Pproj) circle (1.2pt);
 		\node[below] at (Pproj) {$p_\perp$};
 		
-		% 从船到投影点的虚线   % 横向误差线
-%		\draw[dashed] (P) -- (Pproj);
-		\draw[thick] (P) -- (Pproj);
-		\node[right] at (5, 4) {$e$};
-		
-		  % LOS 点
-		\coordinate (Plos) at (14, 12);
+		% 自动生成 LOS 点：从投影点沿路径方向前移
+		\coordinate (Plos) at ($(Pproj)!0.72!(Pkp)$);
 		\fill (Plos) circle (1.2pt);
 		\node[above] at (Plos) {$p_{\mathrm{LOS}}$};
 		
-		% 前视距离	
+		% 横向误差 e
+		\draw[thick] (P) -- (Pproj);
+		\node[midway,left] {$e$};
+		
+		% 前视距离 Delta
 		\draw[<->] (Pproj) -- (Plos);
-		\node[below] at (10, 10.5) {$\Delta$};
+		\node[midway,above] {$\Delta$};
 		
 		% LOS 向量
-		\draw[->,thick] (P) -- (Plos);
+		\draw[->,thick,dashed] (P) -- (Plos) node[midway,above right] {LOS};
 		
-		\coordinate (P1) at (7.5, 10);
-		\draw[dashed] (P) -- (P1);
+		% =================================================
+		% 3. 局部 North 参考线（一定要画出来）
+		% =================================================
+		\coordinate (NorthRefP)  at ($(P)+(0,3.2)$);
+		\coordinate (NorthRefPk) at ($(Pk)+(0,2.6)$);
 		
-		% 用于角度标注的 East 参考点
-		\coordinate (Peast) at ($(P)+(0,7.21)$);	
+		\draw[dashed] (P)  -- (NorthRefP);
+		\draw[dashed] (Pk) -- (NorthRefPk);
 		
-		% alpha_k
-		\draw pic[
-		draw,
-		<-,
-		angle radius=9mm,
-		angle eccentricity=1.25,
-		"$\alpha_k$"
-		] {angle = Pkp--Peast--P1};
+		% =================================================
+		% 4. 自动计算方向角（内部仍按 East-based）
+		%    但图上的角统一“按 North 顺时针”解释
+		% =================================================
 		
-		\coordinate (P2) at (14, 10);
-		\draw[dashed] (Plos) -- (P2);
+		% 路径方向 alpha_k
+		\pgfmathanglebetweenpoints{\pgfpointanchor{Pk}{center}}{\pgfpointanchor{Pkp}{center}}
+		\pgfmathsetmacro{\alphaE}{\pgfmathresult}
 		
-		% chi_d 角
-%		\coordinate (PeastP) at ($(P)+(1.4,0)$);
-		\draw pic[
-		draw,
-		<-,
-		angle radius=8mm,
-		angle eccentricity=1.25,
-		"$\chi_d$"
-		] {angle = P--Plos--P2};
-		
-
-		% -------------------------------------------------
-		% 3. 定义三个方向角
-		%    chi_d: 期望航迹角（LOS方向）
-		%    chi  : 实际航迹角
-		%    psi  : 实际航向角（船体方向）
-		% -------------------------------------------------
-		% 计算chiD 
+		% LOS 对应的期望航迹角 chi_d
 		\pgfmathanglebetweenpoints{\pgfpointanchor{P}{center}}{\pgfpointanchor{Plos}{center}}
-		\let\chiD\pgfmathresult
+		\pgfmathsetmacro{\chiDE}{\pgfmathresult}
 		
-		% 你可以手动调这两个偏差，控制图的观感
-		\pgfmathsetmacro{\chiActual}{\chiD+15}   % 实际航迹角 chi
-		\pgfmathsetmacro{\psiAngle}{\chiActual-10} % 实际航向角 psi
-		% beta = chi - psi = 16 deg
-
-		% -------------------------------------------------
-		% 4. 先定义三条方向辅助点
-		% -------------------------------------------------
-		\coordinate (ChiDPoint) at ($(P)+({4*cos(\chiD)},{4*sin(\chiD)})$);
-		\coordinate (ChiPoint)  at ($(P)+({3*cos(\chiActual)},{3*sin(\chiActual)})$);
-		\draw[->, dashed] (P) -- (ChiPoint) node[above] {$U$};
-		\coordinate (PsiPoint)  at ($(P)+({3*cos(\psiAngle)},{3*sin(\psiAngle)})$);
-%		\draw[dashed] (P) -- (PsiPoint);
-		\coordinate (NorthRef) at $(P)+(0, 1.5);
+		% 你可以手调这两个偏差
+		\pgfmathsetmacro{\chiE}{\chiDE + 8}   % 实际航迹角 chi
+		\pgfmathsetmacro{\psiE}{\chiE  + 10}  % 实际航向角 psi
+		% 这样 beta = psi - chi 在 East-based 下为正，
+		% 对应图上“从 psi 到 chi 的顺时针小角”
 		
-		% =========================
-		% 3. 船体参数（从你原来的代码缩小后搬过来）
-		% =========================
-		\def\L{1.6}   % 船全长
-		\def\B{0.6}   % 船身宽
-%		\def\Bbow{0.2} % 船首尖端宽 (0表示全尖)
-		\def\Lrect{1.0} % 矩形部分长度
-%		\def\psiAngle{35} % USV 的航向角
-		% =========================
-		% 4. 在 P 点画 USV
-		% =========================
-		\begin{scope}[shift={(P)}, rotate=\psiAngle]
-			
+		% =================================================
+		% 5. 构造方向辅助点
+		% =================================================
+		\coordinate (ChiPoint) at ($(P)+({4.0*cos(\chiE)},{4.0*sin(\chiE)})$);
+		\coordinate (PsiPoint) at ($(P)+({3.2*cos(\psiE)},{3.2*sin(\psiE)})$);
+		
+		% =================================================
+		% 6. 画 USV（朝向 psi）
+		% =================================================
+		\def\L{1.6}
+		\def\B{0.6}
+		\def\Lrect{1.0}
+		
+		\begin{scope}[shift={(P)}, rotate=\psiE]
 			\coordinate (SternL) at (-\Lrect/2, -\B/2);
 			\coordinate (SternR) at (-\Lrect/2,  \B/2);
 			\coordinate (BowR)   at ( \Lrect/2,  \B/2);
 			\coordinate (BowTip) at ( \L/2,      0);
 			\coordinate (BowL)   at ( \Lrect/2, -\B/2);
 			
-%			\draw[thick, =blue!10, fill opacity=0.25]
-			\draw[thick]
-			(SternL) -- (SternR) -- (BowR) -- (BowTip) -- (BowL) -- cycle;
+			% 只画轮廓，不填充
+			\draw[thick] (SternL) -- (SternR) -- (BowR) -- (BowTip) -- (BowL) -- cycle;
 			
-			\draw[->, dashed] %, red!80!black]
-			(0,0) -- (3,0) coordinate (Xb_axis) node[above] {$x_B$};
-			
-			\draw[->, dashed] %, red!80!black]
-			(0,0) -- (0,-1) node[above] {$y_B$};
-			
+			% Body-fixed frame
+			\draw[->,dashed] (0,0) -- (3,0) node[above] {$x_B$};
+			\draw[->,dashed] (0,0) -- (0,-1) node[above] {$y_B$};
 		\end{scope}
 		
-		% -------------------------------------------------
-		% 7. 角度标注：psi, chi, beta
-		% -------------------------------------------------
+		\node[above left] at (P) {$p$};
 		
-		% psi：从 East 到船体航向
+		% 实际速度方向 U（对应 chi）
+		\draw[->,dashed] (P) -- (ChiPoint) node[above right] {$U$};
+		
+		% =================================================
+		% 7. 自动角度标注（全部按 North 顺时针理解）
+		%    关键：用 Target--Vertex--NorthRef，并配合 <- 
+		% =================================================
+		
+		% alpha_k：从 North 到路径方向
 		\draw pic[
 		draw,
 		<-,
-		angle radius=25mm,
-		angle eccentricity=1.1,
-		"$\psi$"
-		] {angle = PsiPoint--P--NorthRef};
+		angle radius=10mm,
+		angle eccentricity=1.2,
+		"$\alpha_k$"
+		] {angle = Pkp--Pk--NorthRefPk};
 		
-		% chi：从 East 到实际航迹
+		% psi：从 North 到航向
+		\draw pic[
+		draw,
+		<-,
+		angle radius=13mm,
+		angle eccentricity=1.18,
+		"$\psi$"
+		] {angle = PsiPoint--P--NorthRefP};
+		
+		% chi_d：从 North 到期望航迹（LOS方向）
 		\draw pic[
 		draw,
 		<-,
 		angle radius=18mm,
-		angle eccentricity=1.18,
-		"$\chi$"
-		] {angle = ChiPoint--P--NorthRef};
-		
-		% beta：从 psi 到 chi
-		\draw pic[
-		draw,
-		<-,
-		angle radius=19mm,
-		angle eccentricity=1.18,
-		"$\beta$"
-		] {angle = PsiPoint--P--ChiPoint};
-		
-		% chi_d：期望航迹
-		\draw pic[
-		draw,
-		<-,
-		angle radius=12mm,
-		angle eccentricity=1.18,
+		angle eccentricity=1.15,
 		"$\chi_d$"
-		] {angle = ChiDPoint--P--NorthRef};
-
+		] {angle = Plos--P--NorthRefP};
+		
+		% chi：从 North 到实际航迹
+		\draw pic[
+		draw,
+		<-,
+		angle radius=23mm,
+		angle eccentricity=1.15,
+		"$\chi$"
+		] {angle = ChiPoint--P--NorthRefP};
+		
+		% beta：从 psi 到 chi（顺时针小角）
+		\draw pic[
+		draw,
+		<-,
+		angle radius=14mm,
+		angle eccentricity=1.15,
+		"$\beta$"
+		] {angle = ChiPoint--P--PsiPoint};
+		
 	\end{tikzpicture}
 \end{document}
