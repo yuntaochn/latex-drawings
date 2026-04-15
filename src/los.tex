@@ -4,11 +4,18 @@
 \begin{document}
 	\begin{tikzpicture}[>=Latex]
 		
-		% =================================================
-		% 1. 全局坐标系
-		% =================================================
-		\draw[->,thick] (0,0) -- (18,0) node[below] {Y(East)};
-		\draw[->,thick] (0,0) -- (0,15) node[left]  {X(North)};
+        % ---------- helper NE axis ----------
+        % 原点
+        \coordinate (O) at (2,10);
+        % 坐标箭头
+        \draw[->, thick] (O) -- ++(0,2.0) node[above] {North};
+        \draw[->, thick] (O) -- ++(2.0,0) node[right] {East};
+
+		% % =================================================
+		% % 1. 全局坐标系
+		% % =================================================
+		% \draw[->,thick] (0,0) -- (18,0) node[below] {Y(East)};
+		% \draw[->,thick] (0,0) -- (0,15) node[left]  {X(North)};
 		
 		% =================================================
 		% 2. 路径、当前位置、投影点、LOS点
@@ -71,7 +78,7 @@
 		
 		% 你可以手调这两个偏差
 		\pgfmathsetmacro{\chiE}{\chiDE + 8}   % 实际航迹角 chi
-		\pgfmathsetmacro{\psiE}{\chiE  + 10}  % 实际航向角 psi
+		\pgfmathsetmacro{\psiE}{\chiE  + 8}  % 实际航向角 psi
 		% 这样 beta = psi - chi 在 East-based 下为正，
 		% 对应图上“从 psi 到 chi 的顺时针小角”
         % 实际航迹 $\chi$ 离 $\chi_d$ 太远，就把 `+8` 改小；
@@ -85,10 +92,11 @@
 		
 		% =================================================
 		% 6. 画 USV（朝向 psi）
+        % CS2 L:B = 1.255:0.29
 		% =================================================
-		\def\L{1.6}
-		\def\B{0.6}
-		\def\Lrect{1.0}
+		\def\L{2.4}
+		\def\B{0.8}
+		\def\Lrect{1.2}
 		
 		\begin{scope}[shift={(P)}, rotate=\psiE]
 			\coordinate (SternL) at (-\Lrect/2, -\B/2);
