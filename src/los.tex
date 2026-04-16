@@ -6,10 +6,10 @@
 		
         % ---------- helper NE axis ----------
         % 原点
-        \coordinate (O) at (2,10);
+        \coordinate (O) at (2,8);
         % 坐标箭头
-        \draw[->, thick] (O) -- ++(0,2.0) node[above] {North};
-        \draw[->, thick] (O) -- ++(2.0,0) node[right] {East};
+        \draw[->, thick] (O) -- ++(0,1.6) node[above] {North};
+        \draw[->, thick] (O) -- ++(1.6,0) node[right] {East};
 
 		% % =================================================
 		% % 1. 全局坐标系
@@ -20,8 +20,8 @@
 		% =================================================
 		% 2. 路径、当前位置、投影点、LOS点
 		% =================================================
-		\coordinate (Pk)  at (2,5);
-		\coordinate (Pkp) at (16,13.17);
+		\coordinate (Pk)  at (3, 3);
+		\coordinate (Pkp) at (12,9);
 		\coordinate (P)   at (7.5,1);
 		
 		% 路径
@@ -34,10 +34,10 @@
 		% 自动正交投影点
 		\coordinate (Pproj) at ($(Pk)!(P)!(Pkp)$);
 		\fill (Pproj) circle (1.2pt);
-		\node[below] at (Pproj) {$p_\perp$};
+		\node[below=3pt] at (Pproj) {$p_\perp$};
 		
 		% 自动生成 LOS 点：从投影点沿路径方向前移
-		\coordinate (Plos) at ($(Pproj)!0.72!(Pkp)$);
+		\coordinate (Plos) at ($(Pproj)!0.82!(Pkp)$);
 		\fill (Plos) circle (1.2pt);
 		\node[above] at (Plos) {$p_{\mathrm{LOS}}$};
 		
@@ -77,8 +77,8 @@
 		\pgfmathsetmacro{\chiDE}{\pgfmathresult}
 		
 		% 你可以手调这两个偏差
-		\pgfmathsetmacro{\chiE}{\chiDE + 8}   % 实际航迹角 chi
-		\pgfmathsetmacro{\psiE}{\chiE  + 8}  % 实际航向角 psi
+		\pgfmathsetmacro{\chiE}{\chiDE + 5}   % 实际航迹角 chi
+		\pgfmathsetmacro{\psiE}{\chiE  + 6}  % 实际航向角 psi
 		% 这样 beta = psi - chi 在 East-based 下为正，
 		% 对应图上“从 psi 到 chi 的顺时针小角”
         % 实际航迹 $\chi$ 离 $\chi_d$ 太远，就把 `+8` 改小；
