@@ -19,7 +19,7 @@
     % 1. Path, vehicle position, projection and look-ahead points
     % =================================================
     \coordinate (Pk)  at (1.8, 1.8);
-    \coordinate (Pkp) at (7.2,5.4);
+    \coordinate (Pkp) at (7.2,5.8);
     \coordinate (P)   at (4.5,0.6);
 
     \draw[thick] (Pk) -- (Pkp);
@@ -47,7 +47,7 @@
     \coordinate (Pilos) at
       ($(Plos)+({-\Ishift*sin(\alphaE)},{\Ishift*cos(\alphaE)})$);
     \fill (Pilos) circle (1.2pt);
-    \node[above left=1pt] at (Pilos) {$p_{\mathrm{ILOS}}$};
+    \node[left=1pt] at (Pilos) {$p_{\mathrm{ILOS}}$};
 
     % Cross-track error and look-ahead distance
     \draw[thick] (P) -- (Pproj)
@@ -58,7 +58,7 @@
     % Only one additional element distinguishes ILOS from LOS:
     % the integral compensation offset sigma*y_I.
     \draw[->] (Plos) -- (Pilos)
-      node[midway, left=2pt] {$\sigma y_I$};
+      node[above, right=0pt] {$\sigma y_I$};
 
     % Integral line-of-sight vector
     \draw[->,thick,dashed] (P) -- (Pilos)
