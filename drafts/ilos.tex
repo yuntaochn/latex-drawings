@@ -4,14 +4,7 @@
     arrow/.style = {-{Latex[length=1.8mm,width=1mm]}, line width=0.6pt},
     fwd/.style  = {-{Latex[length=1.8mm,width=1mm]}, line width=0.6pt},
     bwd/.style  = {{Latex[length=1.8mm,width=1mm]}-, line width=0.6pt},
-    both/.style = {{Latex[length=1.8mm,width=1mm]}-{Latex[length=1.8mm,width=1mm]}, line width=0.6pt},
-    construction/.style = {densely dashed,gray!55,line width=0.45pt},
-    labelbox/.style = {fill=white,inner sep=0.8pt},
-    anglelabel/.style = {font=\footnotesize,fill=white,inner sep=0.35pt},
-    losline/.style = {-{Latex[length=1.6mm,width=0.9mm]},densely dotted,
-                      gray!65,line width=0.5pt},
-    ilosline/.style = {-{Latex[length=1.9mm,width=1.1mm]},dashed,
-                       line width=1.0pt}
+    both/.style = {{Latex[length=1.8mm,width=1mm]}-{Latex[length=1.8mm,width=1mm]}, line width=0.6pt}
 }
 
 \begin{document}
@@ -40,47 +33,30 @@
     \fill (Pproj) circle (1.2pt);
     \node[below=3pt] at (Pproj) {$p_\perp$};
 
-    % Nominal LOS point on the path
+    % LOS point on the path
+    % In ILOS, the geometry remains the same as LOS.
+    % The integral term enters the guidance law rather than creating a new point.
     \coordinate (Plos) at ($(Pproj)!0.82!(Pkp)$);
     \fill (Plos) circle (1.2pt);
-    \node[below right=2pt] at (Plos) {$p_{\mathrm{LOS}}$};
+    \node[above right=1pt] at (Plos) {$p_{\mathrm{LOS}}$};
 
     % Path angle (TikZ uses an East-based angle internally)
     \pgfmathanglebetweenpoints{\pgfpointanchor{Pk}{center}}{\pgfpointanchor{Pkp}{center}}
     \pgfmathsetmacro{\alphaE}{\pgfmathresult}
 
-    % The reference construction first shifts the projection point along
-    % the upper-left path normal, then looks ahead by Delta.
-    \def\Ishift{0.45}
-    \coordinate (Pint) at
-      ($(Pproj)+({-\Ishift*sin(\alphaE)},{\Ishift*cos(\alphaE)})$);
-    \coordinate (Pilos) at
-      ($(Plos)+({-\Ishift*sin(\alphaE)},{\Ishift*cos(\alphaE)})$);
-
-    \fill (Pint)  circle (1.2pt);
-    \fill (Pilos) circle (1.2pt);
-    \node[above left=2pt] at (Pilos) {$p_{\mathrm{ILOS}}$};
-
-    % Cross-track error
+    % Cross-track error and look-ahead distance
     \draw[thick] (P) -- (Pproj)
       node[pos=0.5, left] {$e_y$};
+    \draw[<->] (Pproj) -- (Plos)
+      node[pos=0.55, above=2pt] {$\Delta$};
 
-    % Integral offset followed by the look-ahead distance.
-    \draw[->] (Pproj) -- (Pint)
-      node[pos=0.52,above left=1pt] {$\sigma_i$};
-    \draw[<->] (Pint) -- (Pilos)
-      node[pos=0.54,above=2pt] {$\Delta$};
+    % Integral compensation indication (not a geometric point)
+    \node[right=8pt] at ($(Plos)+(0.15,0.15)$) {$\sigma y_I$};
+    \draw[->, dashed] ($(Plos)+(0.35,-0.25)$) -- ($(Plos)+(0.05,-0.05)$);
 
-    % Subdued construction lines show the parallel translation without
-    % competing with the guidance vectors.
-    \draw[construction] (Pproj) -- (Plos);
-    \draw[construction] (Plos) -- (Pilos);
-
-    % Nominal LOS and integral LOS vectors.
-    \draw[losline] (P) -- (Plos)
-      node[pos=0.64,right=3pt,font=\small,labelbox] {LOS};
-    \draw[ilosline] (P) -- (Pilos)
-      node[pos=0.78,above left=2pt,font=\small,labelbox] {ILOS};
+    % LOS vector with integral compensation in guidance law
+    \draw[->,thick,dashed] (P) -- (Plos)
+      node[pos=0.68,right=3pt] {ILOS};
 
     % =================================================
     % 2. Local North reference lines
@@ -122,43 +98,27 @@
     \draw[->,dashed] (P) -- (ChiPoint) node[above right] {$U$};
 
     % =================================================
-    % 4. Original angle arcs with locally separated labels
+    % 4. Angle annotations, measured clockwise from North
     % =================================================
     \draw pic[
       draw,bwd,angle radius=6mm,angle eccentricity=1.3,"$\alpha_k$"
     ] {angle = Pkp--Pk--NorthRefPk};
 
     \draw pic[
-      draw,bwd,angle radius=13mm
+      draw,bwd,angle radius=13mm,angle eccentricity=1.18,"$\psi$"
     ] {angle = PsiPoint--P--NorthRefP};
 
     \draw pic[
-      draw,bwd,angle radius=18mm
+      draw,bwd,angle radius=18mm,angle eccentricity=1.15,"$\chi_d$"
     ] {angle = Pilos--P--NorthRefP};
 
     \draw pic[
-      draw,bwd,angle radius=23mm
+      draw,bwd,angle radius=23mm,angle eccentricity=1.15,"$\chi$"
     ] {angle = ChiPoint--P--NorthRefP};
 
     \draw pic[
-      draw,bwd,angle radius=14mm
+      draw,bwd,angle radius=14mm,angle eccentricity=1.15,"$\beta$"
     ] {angle = ChiPoint--P--PsiPoint};
-
-    % Keep the original arcs, but place their labels independently along
-    % the corresponding angle bisectors so they remain legible at print size.
-    \pgfmathsetmacro{\psiLabelE}{0.5*(\psiE+90)}
-    \pgfmathsetmacro{\chiDLabelE}{0.5*(\chiDE+90)}
-    \pgfmathsetmacro{\chiLabelE}{0.5*(\chiE+90)}
-    \pgfmathsetmacro{\betaLabelE}{0.5*(\chiE+\psiE)}
-
-    \node[anglelabel] at
-      ($(P)+({0.85*cos(\psiLabelE)},{0.85*sin(\psiLabelE)})$) {$\psi$};
-    \node[anglelabel] at
-      ($(P)+({1.35*cos(\betaLabelE)},{1.35*sin(\betaLabelE)})$) {$\beta$};
-    \node[anglelabel] at
-      ($(P)+({1.90*cos(\chiDLabelE)},{1.90*sin(\chiDLabelE)})$) {$\chi_d$};
-    \node[anglelabel] at
-      ($(P)+({2.55*cos(\chiLabelE)},{2.55*sin(\chiLabelE)})$) {$\chi$};
 
 \end{tikzpicture}
 \end{document}
